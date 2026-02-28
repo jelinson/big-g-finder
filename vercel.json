@@ -1,0 +1,11 @@
+{
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/", "destination": "/sweet-cow-finder.html" }
+  ],
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
