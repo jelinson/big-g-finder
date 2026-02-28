@@ -2,7 +2,9 @@ name: Scrape Sweet Cow Flavors
 
 on:
   schedule:
-    - cron: '0 14 * * *'  # 8am MT (UTC-6 MDT / UTC-7 MST)
+    - cron: '0 13 * * *'  # 6am MT  (UTC-7 MST / UTC-6 MDT)
+    - cron: '0 19 * * *'  # 12pm MT
+    - cron: '0 1 * * *'   # 6pm MT
   workflow_dispatch:        # manual trigger for testing
 
 jobs:
