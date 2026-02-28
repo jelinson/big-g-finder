@@ -1,6 +1,6 @@
 {
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/", "destination": "/sweet-cow-finder.html" }
+    { "source": "/", "destination": "/index.html" }
   ]
 }

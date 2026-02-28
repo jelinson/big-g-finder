@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big G's Cookies & Dream Finder | Sweet Cow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍦</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+    <div class="bg-decoration decoration-1"></div>
+    <div class="bg-decoration decoration-2"></div>
+    <div class="bg-decoration decoration-3"></div>
+
+    <div class="container">
+        <header>
+            <h1>🍦 Big G's Finder</h1>
+            <p class="subtitle">Find Sweet Cow's best flavor</p>
+        </header>
+
+        <div id="loading" class="loading">
+            Checking locations<span class="spinner"></span>
+        </div>
+
+        <select id="flavorSelect" class="flavor-select" style="display: none;">
+            <option value="">Loading flavors...</option>
+        </select>
+
+        <div id="results"></div>
+
+        <div id="subscribe-section" class="subscribe-section" style="display:none">
+            <div class="subscribe-card">
+                <h2>🔔 Get Notified</h2>
+                <p class="subscribe-description">
+                    Email me when <span id="subscribe-flavor-display" class="flavor-pill">this flavor</span> is spotted at Sweet Cow.
+                </p>
+                <form id="subscribe-form" onsubmit="submitSubscription(event)">
+                    <div class="subscribe-field">
+                        <input type="email" id="subscribe-email" class="subscribe-input"
+                            placeholder="your@email.com" required autocomplete="email">
+                    </div>
+                    <details class="location-checkboxes">
+                        <summary>Filter by location (optional — leave unchecked for all)</summary>
+                        <div class="checkbox-grid" id="location-checkboxes"></div>
+                    </details>
+                    <button type="submit" class="subscribe-button" id="subscribe-btn">Notify Me!</button>
+                </form>
+                <div id="subscribe-message" class="subscribe-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/public/app.js"></script>
+</body>
+</html>
