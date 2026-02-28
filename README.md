@@ -11,9 +11,6 @@ Never miss Big G's Cookies & Dream again. Tracks Sweet Cow ice cream flavors acr
 ## Overview
 
 Sweet Cow posts their daily flavors on their website, but there's no way to get notified when a specific flavor shows up. Big G's Finder scrapes all Sweet Cow locations 3x per day, stores the flavor history in a database, and emails subscribers the moment their flavor is spotted.
-
-Locations are auto-discovered from `sweetcow.com` — no code changes needed when Sweet Cow opens or closes a location.
-
 ---
 
 ## Features

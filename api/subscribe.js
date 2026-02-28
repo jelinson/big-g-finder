@@ -36,6 +36,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'email and flavorPattern are required' });
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
     const normalized = normalizeFlavorName(flavorPattern);
 
     const { data, error } = await supabase

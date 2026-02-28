@@ -12,7 +12,7 @@ describe('buildConfirmEmail', () => {
   });
 
   it('includes the flavor name in the HTML', () => {
-    expect(buildConfirmEmail(opts).html).toContain("Big G's Cookies & Dream");
+    expect(buildConfirmEmail(opts).html).toContain("Big G&#39;s Cookies &amp; Dream");
   });
 
   it('includes the confirm URL in the HTML', () => {
@@ -49,7 +49,7 @@ describe('buildNotifyEmail', () => {
   });
 
   it('includes the flavor name in HTML', () => {
-    expect(buildNotifyEmail(opts).html).toContain("Big G's Cookies & Dream");
+    expect(buildNotifyEmail(opts).html).toContain("Big G&#39;s Cookies &amp; Dream");
   });
 
   it('includes the unsubscribe URL', () => {

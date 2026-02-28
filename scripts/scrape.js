@@ -22,8 +22,14 @@ function slugToName(slug) {
 
 // ── Location discovery ────────────────────────────────────────────────────────
 
+function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 export async function discoverLocations() {
-  const res = await fetch('https://sweetcow.com/', {
+  const res = await fetchWithTimeout('https://sweetcow.com/', {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BigGFinder/1.0)' },
   });
   if (!res.ok) throw new Error(`Failed to fetch sweetcow.com: HTTP ${res.status}`);
@@ -89,7 +95,7 @@ export async function reconcileLocations(supabase, discovered) {
 // ── Flavor scraping ───────────────────────────────────────────────────────────
 
 export async function scrapeLocation(location) {
-  const response = await fetch(location.url, {
+  const response = await fetchWithTimeout(location.url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BigGFinder/1.0)' },
   });
   if (!response.ok) throw new Error(`HTTP ${response.status} for ${location.url}`);
