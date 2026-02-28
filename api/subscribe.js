@@ -1,16 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { normalizeFlavorName } from '../lib/normalize.js';
+import { buildConfirmEmail } from '../lib/emails.js';
 
 const APP_URL = process.env.APP_URL || 'https://biggfinder.jelinson.com';
-
-function normalizeFlavorName(name) {
-  return name.toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .replace(/big\s*g[''']?s?/i, 'bigg')
-    .replace(/gigantic[''']?s?/i, 'gigantic')
-    .replace(/cookie[s]?/i, 'cookie')
-    .replace(/dream[s]?/i, 'dream');
-}
 
 export default async function handler(req, res) {
   const supabase = createClient(
@@ -30,9 +23,7 @@ export default async function handler(req, res) {
       .update({ confirmed: true })
       .eq('confirm_token', confirm);
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    if (error) return res.status(500).json({ error: error.message });
 
     return res.redirect(302, `${APP_URL}/?subscribed=1`);
   }
@@ -58,27 +49,14 @@ export default async function handler(req, res) {
       .single();
 
     if (error) {
-      // Duplicate subscription — return success silently to avoid enumeration
-      if (error.code === '23505') {
-        return res.status(200).json({ ok: true });
-      }
+      if (error.code === '23505') return res.status(200).json({ ok: true }); // duplicate, silent
       return res.status(500).json({ error: error.message });
     }
 
     const confirmUrl = `${APP_URL}/api/subscribe?confirm=${data.confirm_token}`;
+    const emailPayload = buildConfirmEmail({ flavorPattern, confirmUrl });
     const resend = new Resend(process.env.RESEND_API_KEY);
-
-    await resend.emails.send({
-      from: "Big G's Finder <noreply@jelinson.com>",
-      to: email,
-      subject: "Confirm your Big G's Finder subscription",
-      html: `
-        <h2>🍦 Confirm your subscription</h2>
-        <p>You asked to be notified when <strong>${flavorPattern}</strong> is available at Sweet Cow.</p>
-        <p><a href="${confirmUrl}" style="background:#FF6B9D;color:white;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:700">Confirm Subscription</a></p>
-        <p style="font-size:12px;color:#999">If you didn't request this, you can ignore this email.</p>
-      `,
-    });
+    await resend.emails.send({ ...emailPayload, to: email });
 
     return res.status(200).json({ ok: true });
   }

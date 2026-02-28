@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Big G's Cookies & Dream Finder | Sweet Cow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍦</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -420,10 +421,11 @@
         /* ── Subscription banner & form ─────────────────────────────── */
 
         .subscribed-banner {
+            position: relative;
             background: #D4EDDA;
             border: 3px solid #28A745;
             border-radius: 20px;
-            padding: 18px 25px;
+            padding: 18px 50px 18px 25px;
             margin-bottom: 30px;
             color: #155724;
             font-weight: 600;
@@ -431,6 +433,23 @@
             text-align: center;
             animation: fadeIn 0.5s ease;
         }
+
+        .banner-close {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: #155724;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+            opacity: 0.7;
+        }
+
+        .banner-close:hover { opacity: 1; }
 
         .subscribe-section {
             margin-top: 40px;
@@ -516,6 +535,25 @@
         .subscribe-message.success { color: #28A745; }
         .subscribe-message.error   { color: #D32F2F; }
 
+        .flavor-pill {
+            display: inline-block;
+            background: var(--cherry);
+            color: white;
+            padding: 2px 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-style: normal;
+            font-size: 0.95em;
+        }
+
+        .subscribe-hint {
+            font-size: 0.85rem;
+            color: var(--chocolate);
+            opacity: 0.6;
+            margin: 12px 0 0 0;
+            text-align: center;
+        }
+
         .location-checkboxes {
             margin-bottom: 15px;
         }
@@ -576,7 +614,7 @@
             <div class="subscribe-card">
                 <h2>🔔 Get Notified</h2>
                 <p class="subscribe-description">
-                    Email me when <strong id="subscribe-flavor-display">this flavor</strong> is spotted at Sweet Cow.
+                    Email me when <span id="subscribe-flavor-display" class="flavor-pill">this flavor</span> is spotted at Sweet Cow.
                 </p>
                 <form id="subscribe-form" onsubmit="submitSubscription(event)">
                     <div class="subscribe-field">
@@ -620,7 +658,7 @@
                 return patterns.some(pattern => normalized.includes(pattern) ||
                        (normalized.includes('bigg') && normalized.includes('cookie') && normalized.includes('dream')));
             } else {
-                return flavorName.toLowerCase().trim() === targetFlavor.toLowerCase().trim();
+                return normalizeFlavorName(flavorName) === normalizeFlavorName(targetFlavor);
             }
         }
 
@@ -780,7 +818,7 @@
             const isBigGs = isTargetFlavor(targetFlavor, null) || targetFlavor === "Big G's Cookies & Dream";
 
             const results = allLocationData.map(locationData => {
-                const found = locationData.flavors.some(f => f.toLowerCase().trim() === targetFlavor.toLowerCase().trim());
+                const found = locationData.flavors.some(f => normalizeFlavorName(f) === normalizeFlavorName(targetFlavor));
                 return {
                     location: locationData.location,
                     address: locationData.address,
@@ -808,6 +846,7 @@
                             <select id="flavorSelectVisible" class="flavor-select" onchange="selectFlavorFromVisible()">
                                 ${hiddenSelect.innerHTML}
                             </select>
+                            <p class="subscribe-hint">↓ Get notified for this flavor below</p>
                         </div>
                     </div>
                 `;
@@ -824,6 +863,7 @@
                             <select id="flavorSelectVisible" class="flavor-select" onchange="selectFlavorFromVisible()">
                                 ${hiddenSelect.innerHTML}
                             </select>
+                            <p class="subscribe-hint">↓ Get notified for this flavor below</p>
                         </div>
                     </div>
                 `;
@@ -908,7 +948,7 @@
             if (new URLSearchParams(location.search).get('subscribed') === '1') {
                 const banner = document.createElement('div');
                 banner.className = 'subscribed-banner';
-                banner.textContent = '✓ You\'re subscribed! Check your email to confirm.';
+                banner.innerHTML = '✓ You\'re subscribed! Check your email to confirm. <button class="banner-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>';
                 document.querySelector('.container').prepend(banner);
                 // Clean up URL
                 history.replaceState(null, '', '/');
