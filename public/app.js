@@ -147,12 +147,13 @@ async function fetchAllLocations() {
     } catch (error) {
         console.error('Error loading flavors:', error);
         loading.style.display = 'none';
-        resultsDiv.innerHTML = `
-            <div class="error">
-                Oops! Something went wrong while loading flavors. Please refresh the page.
-                <br><br>Error: ${error.message}
-            </div>
-        `;
+        const errorText = document.createTextNode(error.message);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error';
+        errorDiv.innerHTML = 'Oops! Something went wrong while loading flavors. Please refresh the page.<br><br>Error: ';
+        errorDiv.appendChild(errorText);
+        resultsDiv.innerHTML = '';
+        resultsDiv.appendChild(errorDiv);
     }
 }
 

@@ -40,6 +40,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid email address' });
     }
 
+    const validSlug = /^[a-z0-9-]{1,100}$/;
+    if (locations && (!Array.isArray(locations) || !locations.every(s => validSlug.test(s)))) {
+      return res.status(400).json({ error: 'Invalid locations' });
+    }
+
     const normalized = normalizeFlavorName(flavorPattern);
 
     const { data, error } = await supabase

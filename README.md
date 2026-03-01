@@ -79,6 +79,7 @@ Create a `.env` file (or set these in your shell):
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 RESEND_API_KEY=
+RESEND_WEBHOOK_SECRET=   # from Resend dashboard → Webhooks → signing secret
 APP_URL=https://biggfinder.jelinson.com
 ```
 
