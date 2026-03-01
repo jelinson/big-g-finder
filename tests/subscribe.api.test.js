@@ -5,7 +5,7 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => mockSupabase,
 }));
 vi.mock('resend', () => ({
-  Resend: vi.fn(() => mockResend),
+  Resend: vi.fn(function() { return mockResend; }),
 }));
 vi.mock('../lib/emails.js', () => ({
   buildConfirmEmail: vi.fn(() => ({
@@ -48,7 +48,7 @@ describe('POST /api/subscribe', () => {
     vi.resetModules();
     // Re-apply mocks after resetModules
     vi.mock('@supabase/supabase-js', () => ({ createClient: () => mockSupabase }));
-    vi.mock('resend', () => ({ Resend: vi.fn(() => mockResend) }));
+    vi.mock('resend', () => ({ Resend: vi.fn(function() { return mockResend; }) }));
     vi.mock('../lib/emails.js', () => ({
       buildConfirmEmail: vi.fn(() => ({ from: 'x', subject: 'y', html: 'z' })),
     }));
@@ -89,7 +89,7 @@ describe('GET /api/subscribe (confirm)', () => {
     vi.clearAllMocks();
     vi.resetModules();
     vi.mock('@supabase/supabase-js', () => ({ createClient: () => mockSupabase }));
-    vi.mock('resend', () => ({ Resend: vi.fn(() => mockResend) }));
+    vi.mock('resend', () => ({ Resend: vi.fn(function() { return mockResend; }) }));
     vi.mock('../lib/emails.js', () => ({
       buildConfirmEmail: vi.fn(() => ({ from: 'x', subject: 'y', html: 'z' })),
     }));
