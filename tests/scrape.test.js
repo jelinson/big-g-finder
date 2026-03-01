@@ -15,18 +15,29 @@ const SAMPLE_LOCATION_HTML = `
 </body>
 </html>`;
 
-const SAMPLE_HOME_HTML = `
+const SAMPLE_LOCATIONS_HTML = `
 <!DOCTYPE html>
 <html>
 <body>
   <nav>
+    <a href="/flavors2/">Flavors</a>
+    <a href="/locations/">Locations</a>
+    <a href="/truck/">Truck</a>
+    <a href="/order-now/">Order Now</a>
+    <a href="/about/">About</a>
+  </nav>
+  <main>
     <a href="/south-boulder/">South Boulder</a>
     <a href="/north-boulder/">North Boulder</a>
     <a href="/louisville/">Louisville</a>
-    <a href="/about/">About</a>
-    <a href="/catering/">Catering</a>
-    <a href="https://order.sweetcow.com/">Order</a>
-  </nav>
+    <a href="/highlands/">Highlands</a>
+  </main>
+  <footer>
+    <a href="/faqs/">FAQs</a>
+    <a href="/terms-privacy/">Terms &amp; Privacy</a>
+    <a href="/feedback/">Feedback</a>
+    <a href="https://order.sweetcow.com/">Order Online</a>
+  </footer>
 </body>
 </html>`;
 
@@ -70,10 +81,10 @@ describe('discoverLocations', () => {
     vi.stubGlobal('fetch', vi.fn());
   });
 
-  it('extracts location slugs from homepage nav', async () => {
+  it('extracts location slugs from the locations page', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
-      text: async () => SAMPLE_HOME_HTML,
+      text: async () => SAMPLE_LOCATIONS_HTML,
     });
 
     const locations = await discoverLocations();
@@ -81,24 +92,31 @@ describe('discoverLocations', () => {
     expect(slugs).toContain('south-boulder');
     expect(slugs).toContain('north-boulder');
     expect(slugs).toContain('louisville');
+    expect(slugs).toContain('highlands');
   });
 
   it('excludes known non-location pages', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
-      text: async () => SAMPLE_HOME_HTML,
+      text: async () => SAMPLE_LOCATIONS_HTML,
     });
 
     const locations = await discoverLocations();
     const slugs = locations.map(l => l.slug);
     expect(slugs).not.toContain('about');
-    expect(slugs).not.toContain('catering');
+    expect(slugs).not.toContain('flavors2');
+    expect(slugs).not.toContain('truck');
+    expect(slugs).not.toContain('order-now');
+    expect(slugs).not.toContain('locations');
+    expect(slugs).not.toContain('faqs');
+    expect(slugs).not.toContain('feedback');
+    expect(slugs).not.toContain('terms-privacy');
   });
 
   it('excludes external URLs', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
-      text: async () => SAMPLE_HOME_HTML,
+      text: async () => SAMPLE_LOCATIONS_HTML,
     });
 
     const locations = await discoverLocations();
@@ -109,7 +127,7 @@ describe('discoverLocations', () => {
   it('generates title-cased names from slugs', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
-      text: async () => SAMPLE_HOME_HTML,
+      text: async () => SAMPLE_LOCATIONS_HTML,
     });
 
     const locations = await discoverLocations();

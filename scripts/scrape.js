@@ -7,13 +7,14 @@ import { buildNotifyEmail } from '../lib/emails.js';
 
 const APP_URL = process.env.APP_URL || 'https://biggfinder.jelinson.com';
 
-// Slugs that appear as nav links on sweetcow.com but are not location pages
+// Slugs that appear as links on sweetcow.com/locations/ but are not location pages
 const NON_LOCATION_SLUGS = new Set([
   'about', 'catering', 'contact', 'careers', 'merch', 'gift-cards', 'gift-card',
   'blog', 'press', 'wholesale', 'events', 'jobs', 'menu', 'order', 'delivery',
-  'franchise', 'privacy', 'terms', 'faq', 'newsletter', 'rewards', 'loyalty',
-  'store', 'shop', 'cart', 'checkout', 'account', 'login', 'signup', 'search',
-  'tag', 'category', 'locations', 'home',
+  'franchise', 'privacy', 'terms', 'faq', 'faqs', 'terms-privacy', 'newsletter',
+  'rewards', 'loyalty', 'store', 'shop', 'cart', 'checkout', 'account', 'login',
+  'signup', 'search', 'tag', 'category', 'locations', 'home', 'feedback',
+  'flavors', 'flavors2', 'truck', 'order-now',
 ]);
 
 function slugToName(slug) {
@@ -29,7 +30,7 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
 }
 
 export async function discoverLocations() {
-  const res = await fetchWithTimeout('https://sweetcow.com/', {
+  const res = await fetchWithTimeout('https://sweetcow.com/locations/', {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BigGFinder/1.0)' },
   });
   if (!res.ok) throw new Error(`Failed to fetch sweetcow.com: HTTP ${res.status}`);
@@ -79,9 +80,20 @@ export async function reconcileLocations(supabase, discovered) {
     }
   }
 
-  // Removed locations: in DB but not in discovered
+  // Reconcile existing DB locations against discovered set
   for (const [url, loc] of dbByUrl) {
-    if (!discoveredByUrl.has(url) && loc.active) {
+    if (discoveredByUrl.has(url)) {
+      // Location found again — reactivate if it was previously marked inactive
+      if (!loc.active) {
+        console.log(`  Reactivating location: ${loc.name} (${url})`);
+        const { error: updateErr } = await supabase
+          .from('locations')
+          .update({ active: true })
+          .eq('slug', loc.slug);
+        if (updateErr) console.error(`  Failed to reactivate ${loc.name}:`, updateErr.message);
+      }
+    } else if (loc.active) {
+      // Location no longer on site — mark inactive
       console.warn(`  WARNING: Location no longer found on site: ${loc.name} (${url})`);
       const { error: updateErr } = await supabase
         .from('locations')
