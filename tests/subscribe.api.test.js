@@ -67,6 +67,14 @@ describe('POST /api/subscribe', () => {
     expect(res._status).toBe(400);
   });
 
+  it('accepts a non-Big-G flavor (Salted Caramel)', async () => {
+    mockChain.single.mockResolvedValueOnce({ data: { confirm_token: 'salted-tok' }, error: null });
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'fan@example.com', flavorPattern: 'Salted Caramel' }), res);
+    expect(res._status).toBe(200);
+    expect(res._body?.ok).toBe(true);
+  });
+
   it('returns 405 for unsupported methods', async () => {
     const res = mockRes();
     await handler(mockReq('DELETE'), res);

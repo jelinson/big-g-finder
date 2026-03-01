@@ -26,6 +26,17 @@ describe('buildConfirmEmail', () => {
   it('matches snapshot', () => {
     expect(buildConfirmEmail(opts)).toMatchSnapshot();
   });
+
+  it('works for a different flavor (Salted Caramel)', () => {
+    const saltedOpts = {
+      flavorPattern: 'Salted Caramel',
+      confirmUrl: 'https://biggfinder.jelinson.com/api/subscribe?confirm=salted-token',
+    };
+    const email = buildConfirmEmail(saltedOpts);
+    expect(email.html).toContain('Salted Caramel');
+    expect(email.html).toContain('salted-token');
+    expect(email.html).not.toContain("Big G");
+  });
 });
 
 describe('buildNotifyEmail', () => {
@@ -62,5 +73,21 @@ describe('buildNotifyEmail', () => {
 
   it('matches snapshot', () => {
     expect(buildNotifyEmail(opts)).toMatchSnapshot();
+  });
+
+  it('works for a different flavor (Salted Caramel)', () => {
+    const saltedOpts = {
+      matchingFlavors: [
+        { locationName: 'South Boulder', flavorName: 'Salted Caramel' },
+        { locationName: 'North Boulder', flavorName: 'Salted Caramel' },
+      ],
+      appUrl: 'https://biggfinder.jelinson.com',
+      unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
+    };
+    const { html } = buildNotifyEmail(saltedOpts);
+    expect(html).toContain('Salted Caramel');
+    expect(html).toContain('South Boulder');
+    expect(html).toContain('North Boulder');
+    expect(html).toContain('salted-unsub');
   });
 });

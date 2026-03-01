@@ -90,6 +90,7 @@ npm test                  # run all tests (vitest)
 npm run test:watch        # vitest in watch mode
 npm run scrape            # run scraper locally
 npm run preview-emails    # render email templates to email-previews/*.html
+npm run preview-emails -- --flavor "Salted Caramel"  # preview with a specific flavor
 ```
 
 ---
