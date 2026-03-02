@@ -71,6 +71,23 @@ describe('buildNotifyEmail', () => {
     expect(buildNotifyEmail(opts).html).toContain('biggfinder.jelinson.com');
   });
 
+  it("tracker link omits flavor param for Big G's (default flavor)", () => {
+    const { html } = buildNotifyEmail(opts);
+    expect(html).toContain('href="https://biggfinder.jelinson.com"');
+    expect(html).not.toContain('?flavor=');
+  });
+
+  it('tracker link includes flavor param for a non-default flavor', () => {
+    const saltedOpts = {
+      matchingFlavors: [{ locationName: 'South Boulder', flavorName: 'Salted Caramel' }],
+      appUrl: 'https://biggfinder.jelinson.com',
+      unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
+    };
+    expect(buildNotifyEmail(saltedOpts).html).toContain(
+      'href="https://biggfinder.jelinson.com?flavor=Salted%20Caramel"'
+    );
+  });
+
   it('matches snapshot', () => {
     expect(buildNotifyEmail(opts)).toMatchSnapshot();
   });

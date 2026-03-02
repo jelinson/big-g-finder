@@ -1,5 +1,6 @@
 let allLocationData = [];
 let currentSearchFlavor = '';
+let requestedFlavor = null;
 
 function normalizeFlavorName(name) {
     return name.toLowerCase()
@@ -103,6 +104,16 @@ async function fetchAllLocations() {
             label.innerHTML = `<input type="checkbox" name="location" value="${loc.slug}"> ${loc.location}`;
             checkboxGrid.appendChild(label);
         });
+
+        if (requestedFlavor) {
+            const matched = allFlavors.find(f => normalizeFlavorName(f) === normalizeFlavorName(requestedFlavor));
+            if (matched) {
+                select.value = matched;
+                currentSearchFlavor = matched;
+                displayResults(matched);
+                return;
+            }
+        }
 
         if (bigGsFlavor) {
             displayResults(bigGsFlavor);
@@ -309,9 +320,10 @@ async function submitSubscription(event) {
     }
 }
 
-// Show ?subscribed=1 banner
+// Show ?subscribed=1 banner; read ?flavor= pre-selection
 window.addEventListener('DOMContentLoaded', () => {
-    if (new URLSearchParams(location.search).get('subscribed') === '1') {
+    const params = new URLSearchParams(location.search);
+    if (params.get('subscribed') === '1') {
         const banner = document.createElement('div');
         banner.className = 'subscribed-banner';
         banner.innerHTML = '✓ You\'re confirmed! We\'ll notify you when your flavor is spotted. <button class="banner-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>';
@@ -319,5 +331,6 @@ window.addEventListener('DOMContentLoaded', () => {
         // Clean up URL
         history.replaceState(null, '', '/');
     }
+    requestedFlavor = params.get('flavor') || null;
     fetchAllLocations();
 });
