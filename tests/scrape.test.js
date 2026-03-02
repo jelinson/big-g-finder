@@ -27,16 +27,17 @@ const SAMPLE_LOCATIONS_HTML = `
     <a href="/about/">About</a>
   </nav>
   <main>
-    <a href="/south-boulder/">South Boulder</a>
-    <a href="/north-boulder/">North Boulder</a>
-    <a href="/louisville/">Louisville</a>
-    <a href="/highlands/">Highlands</a>
+    <a href="https://sweetcow.com/south-boulder/">South Boulder</a>
+    <a href="https://sweetcow.com/north-boulder/">North Boulder</a>
+    <a href="https://sweetcow.com/louisville/">Louisville</a>
+    <a href="https://sweetcow.com/highlands/">Highlands</a>
   </main>
   <footer>
     <a href="/faqs/">FAQs</a>
     <a href="/terms-privacy/">Terms &amp; Privacy</a>
     <a href="/feedback/">Feedback</a>
     <a href="https://order.sweetcow.com/">Order Online</a>
+    <a href="https://sweetcowegiftifyecom.digitalgiftcardmanager.com/gift">Gift Cards</a>
   </footer>
 </body>
 </html>`;
