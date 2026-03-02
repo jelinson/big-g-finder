@@ -12,14 +12,29 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const { error } = await supabase
+  const { data: sub, error: fetchError } = await supabase
+    .from('subscriptions')
+    .select('flavor_name, flavor_pattern')
+    .eq('unsubscribe_token', token)
+    .single();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    return res.status(500).send('<h2>Something went wrong. Please try again.</h2>');
+  }
+
+  const { error: deleteError } = await supabase
     .from('subscriptions')
     .delete()
     .eq('unsubscribe_token', token);
 
-  if (error) {
+  if (deleteError) {
     return res.status(500).send('<h2>Something went wrong. Please try again.</h2>');
   }
+
+  const displayFlavor = sub?.flavor_name ?? sub?.flavor_pattern;
+  const flavorLine = displayFlavor
+    ? `<p>You'll no longer receive alerts for <strong>${displayFlavor}</strong>.</p>`
+    : '';
 
   return res.status(200).send(`<!DOCTYPE html>
 <html lang="en">
@@ -34,7 +49,8 @@ export default async function handler(req, res) {
 </head>
 <body>
   <h1>🍦 You've been unsubscribed</h1>
-  <p>You won't receive any more alerts from Big G's Finder.</p>
+  ${flavorLine}
+  <p style="color:#999;font-size:14px">Any other flavor subscriptions you have remain active.</p>
   <p><a href="/">Back to the tracker</a></p>
 </body>
 </html>`);
