@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   const { data: sub, error: fetchError } = await supabase
     .from('subscriptions')
-    .select('flavor_pattern')
+    .select('flavor_name, flavor_pattern')
     .eq('unsubscribe_token', token)
     .single();
 
@@ -31,8 +31,9 @@ export default async function handler(req, res) {
     return res.status(500).send('<h2>Something went wrong. Please try again.</h2>');
   }
 
-  const flavorLine = sub?.flavor_pattern
-    ? `<p>You'll no longer receive alerts for <strong>${sub.flavor_pattern}</strong>.</p>`
+  const displayFlavor = sub?.flavor_name ?? sub?.flavor_pattern;
+  const flavorLine = displayFlavor
+    ? `<p>You'll no longer receive alerts for <strong>${displayFlavor}</strong>.</p>`
     : '';
 
   return res.status(200).send(`<!DOCTYPE html>

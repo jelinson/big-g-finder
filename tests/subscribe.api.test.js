@@ -75,6 +75,16 @@ describe('POST /api/subscribe', () => {
     expect(res._body?.ok).toBe(true);
   });
 
+  it('stores flavor_name (original) alongside flavor_pattern (normalized)', async () => {
+    mockChain.single.mockResolvedValueOnce({ data: { confirm_token: 'tok' }, error: null });
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'fan@example.com', flavorPattern: "Big G's Cookies & Dream" }), res);
+    expect(mockChain.insert).toHaveBeenCalledWith(expect.objectContaining({
+      flavor_name: "Big G's Cookies & Dream",
+      flavor_pattern: 'biggcookiedream',
+    }));
+  });
+
   it('returns 405 for unsupported methods', async () => {
     const res = mockRes();
     await handler(mockReq('DELETE'), res);

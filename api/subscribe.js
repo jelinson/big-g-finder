@@ -52,6 +52,7 @@ export default async function handler(req, res) {
       .insert({
         email,
         flavor_pattern: normalized,
+        flavor_name: flavorPattern,
         locations: locations && locations.length > 0 ? locations : null,
       })
       .select('confirm_token')
