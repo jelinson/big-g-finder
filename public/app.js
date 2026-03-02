@@ -314,7 +314,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (new URLSearchParams(location.search).get('subscribed') === '1') {
         const banner = document.createElement('div');
         banner.className = 'subscribed-banner';
-        banner.innerHTML = '✓ You\'re subscribed! Check your email to confirm. <button class="banner-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>';
+        banner.innerHTML = '✓ You\'re confirmed! We\'ll notify you when your flavor is spotted. <button class="banner-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>';
         document.querySelector('.container').prepend(banner);
         // Clean up URL
         history.replaceState(null, '', '/');
