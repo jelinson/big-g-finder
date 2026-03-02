@@ -41,8 +41,8 @@ export async function discoverLocations() {
 
   $('a[href]').each((_, el) => {
     const href = $(el).attr('href');
-    // Match simple single-segment internal paths: /slug/ or /slug
-    const match = href?.match(/^\/([a-z][a-z0-9-]+)\/?$/);
+    // Match single-segment paths: /slug/ or https://sweetcow.com/slug/
+    const match = href?.match(/^(?:https:\/\/sweetcow\.com)?\/([a-z][a-z0-9-]+)\/?$/);
     if (!match) return;
     const slug = match[1];
     if (NON_LOCATION_SLUGS.has(slug)) return;
