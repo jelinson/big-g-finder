@@ -66,41 +66,59 @@ export async function reconcileLocations(supabase, discovered) {
   const dbByUrl = new Map((dbLocations || []).map(l => [l.url, l]));
   const discoveredByUrl = new Map(discovered.map(l => [l.url, l]));
 
-  // New locations: in discovered but not in DB
+  // Pre-compute change lists
+  const toAdd = [];
+  const toReactivate = [];
+  const toDeactivate = [];
+
   for (const [url, loc] of discoveredByUrl) {
-    if (!dbByUrl.has(url)) {
-      console.log(`  New location detected: ${loc.name} (${url})`);
-      const { error: insertErr } = await supabase.from('locations').insert({
-        slug: loc.slug,
-        name: loc.name,
-        url: loc.url,
-        active: true,
-      });
-      if (insertErr) console.error(`  Failed to insert ${loc.name}:`, insertErr.message);
+    if (!dbByUrl.has(url)) toAdd.push(loc);
+  }
+  for (const [url, loc] of dbByUrl) {
+    if (discoveredByUrl.has(url)) {
+      if (!loc.active) toReactivate.push(loc);
+    } else if (loc.active) {
+      toDeactivate.push(loc);
     }
   }
 
-  // Reconcile existing DB locations against discovered set
-  for (const [url, loc] of dbByUrl) {
-    if (discoveredByUrl.has(url)) {
-      // Location found again — reactivate if it was previously marked inactive
-      if (!loc.active) {
-        console.log(`  Reactivating location: ${loc.name} (${url})`);
-        const { error: updateErr } = await supabase
-          .from('locations')
-          .update({ active: true })
-          .eq('slug', loc.slug);
-        if (updateErr) console.error(`  Failed to reactivate ${loc.name}:`, updateErr.message);
-      }
-    } else if (loc.active) {
-      // Location no longer on site — mark inactive
-      console.warn(`  WARNING: Location no longer found on site: ${loc.name} (${url})`);
-      const { error: updateErr } = await supabase
-        .from('locations')
-        .update({ active: false })
-        .eq('slug', loc.slug);
-      if (updateErr) console.error(`  Failed to deactivate ${loc.name}:`, updateErr.message);
-    }
+  // Safety check: more than one addition or removal almost certainly means a
+  // scraping error (e.g. wrong page, site restructure). Skip all DB changes.
+  if (toAdd.length > 1 || toDeactivate.length > 1) {
+    console.warn(`  SAFETY CHECK: would add ${toAdd.length} and deactivate ${toDeactivate.length} location(s) in one run — skipping reconciliation.`);
+    console.warn(`  To add: ${toAdd.map(l => l.slug).join(', ') || 'none'}`);
+    console.warn(`  To deactivate: ${toDeactivate.map(l => l.slug).join(', ') || 'none'}`);
+    console.warn('  Investigate and apply changes manually if legitimate.');
+    return;
+  }
+
+  for (const loc of toAdd) {
+    console.log(`  New location detected: ${loc.name} (${loc.url})`);
+    const { error: insertErr } = await supabase.from('locations').insert({
+      slug: loc.slug,
+      name: loc.name,
+      url: loc.url,
+      active: true,
+    });
+    if (insertErr) console.error(`  Failed to insert ${loc.name}:`, insertErr.message);
+  }
+
+  for (const loc of toReactivate) {
+    console.log(`  Reactivating location: ${loc.name} (${loc.url})`);
+    const { error: updateErr } = await supabase
+      .from('locations')
+      .update({ active: true })
+      .eq('slug', loc.slug);
+    if (updateErr) console.error(`  Failed to reactivate ${loc.name}:`, updateErr.message);
+  }
+
+  for (const loc of toDeactivate) {
+    console.warn(`  WARNING: Location no longer found on site: ${loc.name} (${loc.url})`);
+    const { error: updateErr } = await supabase
+      .from('locations')
+      .update({ active: false })
+      .eq('slug', loc.slug);
+    if (updateErr) console.error(`  Failed to deactivate ${loc.name}:`, updateErr.message);
   }
 }
 
