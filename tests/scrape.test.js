@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { scrapeLocation, discoverLocations, reconcileLocations, getNewFlavors, notifySubscribers } from '../scripts/scrape.js';
+import { scrapeLocation, discoverLocations, reconcileLocations, getNewFlavors, markFlavorsNotified, notifySubscribers } from '../scripts/scrape.js';
 
 const SAMPLE_LOCATION_HTML = `
 <!DOCTYPE html>
@@ -244,7 +244,7 @@ describe('getNewFlavors', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('queries first_seen and last_seen with todays date', async () => {
+  it('queries first_seen = today and notified = false', async () => {
     vi.setSystemTime(new Date('2026-01-15'));
     const expected = [{ location: 'south-boulder', flavor_name: "Big G's Cookies & Dream" }];
     const chain = makeChainableQuery({ data: expected, error: null });
@@ -254,7 +254,7 @@ describe('getNewFlavors', () => {
 
     expect(result).toEqual(expected);
     expect(chain.eq).toHaveBeenCalledWith('first_seen', '2026-01-15');
-    expect(chain.eq).toHaveBeenCalledWith('last_seen', '2026-01-15');
+    expect(chain.eq).toHaveBeenCalledWith('notified', false);
   });
 
   it('returns an empty array when no flavors are new today', async () => {
@@ -263,6 +263,25 @@ describe('getNewFlavors', () => {
     const supabase = { from: vi.fn().mockReturnValue(chain) };
 
     expect(await getNewFlavors(supabase)).toEqual([]);
+  });
+});
+
+// ── markFlavorsNotified ───────────────────────────────────────────────────────
+
+describe('markFlavorsNotified', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('updates notified = true for first_seen = today and notified = false', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const chain = makeChainableQuery({ error: null });
+    const supabase = { from: vi.fn().mockReturnValue(chain) };
+
+    await markFlavorsNotified(supabase);
+
+    expect(chain.update).toHaveBeenCalledWith({ notified: true });
+    expect(chain.eq).toHaveBeenCalledWith('first_seen', '2026-01-15');
+    expect(chain.eq).toHaveBeenCalledWith('notified', false);
   });
 });
 

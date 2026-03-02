@@ -177,9 +177,19 @@ export async function getNewFlavors(supabase) {
     .from('flavors')
     .select('location, flavor_name')
     .eq('first_seen', today)
-    .eq('last_seen', today);
+    .eq('notified', false);
   if (error) throw error;
   return data || [];
+}
+
+export async function markFlavorsNotified(supabase) {
+  const today = new Date().toISOString().split('T')[0];
+  const { error } = await supabase
+    .from('flavors')
+    .update({ notified: true })
+    .eq('first_seen', today)
+    .eq('notified', false);
+  if (error) throw error;
 }
 
 export async function notifySubscribers(supabase, resend, newFlavors, locations) {
@@ -269,6 +279,7 @@ async function main() {
   if (newFlavors.length > 0) {
     console.log('Notifying subscribers...');
     await notifySubscribers(supabase, resend, newFlavors, locations);
+    await markFlavorsNotified(supabase);
   }
 
   console.log('Done.');
