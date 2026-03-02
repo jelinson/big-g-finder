@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { scrapeLocation, discoverLocations, reconcileLocations } from '../scripts/scrape.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { scrapeLocation, discoverLocations, reconcileLocations, getNewFlavors, notifySubscribers } from '../scripts/scrape.js';
 
 const SAMPLE_LOCATION_HTML = `
 <!DOCTYPE html>
@@ -218,5 +218,164 @@ describe('reconcileLocations', () => {
     const discovered = [loc('south-boulder'), loc('north-boulder'), loc('louisville')];
     await reconcileLocations(supabase, discovered);
     expect(supabase._eqMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+// ── Shared helpers for getNewFlavors / notifySubscribers ──────────────────────
+
+// Makes a Supabase query chain that is awaitable at any depth and resolves to
+// the given value. Every chainable method (select, eq, in, etc.) returns the
+// same object, so callers can chain arbitrarily without extra setup.
+function makeChainableQuery(resolvedValue) {
+  const promise = Promise.resolve(resolvedValue);
+  const chain = {
+    then: (res, rej) => promise.then(res, rej),
+    catch: rej => promise.catch(rej),
+  };
+  for (const m of ['select', 'eq', 'in', 'update', 'insert']) {
+    chain[m] = vi.fn().mockReturnValue(chain);
+  }
+  return chain;
+}
+
+// ── getNewFlavors ─────────────────────────────────────────────────────────────
+
+describe('getNewFlavors', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('queries first_seen and last_seen with todays date', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const expected = [{ location: 'south-boulder', flavor_name: "Big G's Cookies & Dream" }];
+    const chain = makeChainableQuery({ data: expected, error: null });
+    const supabase = { from: vi.fn().mockReturnValue(chain) };
+
+    const result = await getNewFlavors(supabase);
+
+    expect(result).toEqual(expected);
+    expect(chain.eq).toHaveBeenCalledWith('first_seen', '2026-01-15');
+    expect(chain.eq).toHaveBeenCalledWith('last_seen', '2026-01-15');
+  });
+
+  it('returns an empty array when no flavors are new today', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const chain = makeChainableQuery({ data: [], error: null });
+    const supabase = { from: vi.fn().mockReturnValue(chain) };
+
+    expect(await getNewFlavors(supabase)).toEqual([]);
+  });
+});
+
+// ── notifySubscribers ─────────────────────────────────────────────────────────
+
+describe('notifySubscribers', () => {
+  function makeResend() {
+    return { emails: { send: vi.fn().mockResolvedValue({}) } };
+  }
+
+  function makeSupabase(subscriptions) {
+    const chain = makeChainableQuery({ data: subscriptions, error: null });
+    return { from: vi.fn().mockReturnValue(chain) };
+  }
+
+  const locations = [
+    { slug: 'location-a', name: 'Location A', url: 'https://sweetcow.com/location-a/' },
+    { slug: 'location-b', name: 'Location B', url: 'https://sweetcow.com/location-b/' },
+  ];
+
+  // flavor_pattern is stored pre-normalized (same transform as normalizeFlavorName)
+  const confirmedSub = {
+    email: 'test@example.com',
+    flavor_pattern: 'biggcookiedream',
+    locations: [],
+    unsubscribe_token: 'tok123',
+    confirmed: true,
+  };
+
+  it('returns early without querying DB when newFlavors is empty', async () => {
+    const resend = makeResend();
+    const supabase = makeSupabase([confirmedSub]);
+
+    await notifySubscribers(supabase, resend, [], locations);
+
+    expect(supabase.from).not.toHaveBeenCalled();
+    expect(resend.emails.send).not.toHaveBeenCalled();
+  });
+
+  it('returns early without querying DB when resend is null', async () => {
+    const supabase = makeSupabase([confirmedSub]);
+    const newFlavors = [{ location: 'location-a', flavor_name: "Big G's Cookies & Dream" }];
+
+    await notifySubscribers(supabase, null, newFlavors, locations);
+
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  it('sends one email when a new flavor matches the subscription', async () => {
+    const resend = makeResend();
+    const supabase = makeSupabase([confirmedSub]);
+    const newFlavors = [{ location: 'location-a', flavor_name: "Big G's Cookies & Dream" }];
+
+    await notifySubscribers(supabase, resend, newFlavors, locations);
+
+    expect(resend.emails.send).toHaveBeenCalledOnce();
+    expect(resend.emails.send).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'test@example.com' })
+    );
+  });
+
+  it('does not send when the flavor pattern does not match', async () => {
+    const resend = makeResend();
+    const supabase = makeSupabase([{ ...confirmedSub, flavor_pattern: 'rockyroad' }]);
+    const newFlavors = [{ location: 'location-a', flavor_name: "Big G's Cookies & Dream" }];
+
+    await notifySubscribers(supabase, resend, newFlavors, locations);
+
+    expect(resend.emails.send).not.toHaveBeenCalled();
+  });
+
+  it('does not send when the new flavor appeared at an unwatched location', async () => {
+    const resend = makeResend();
+    const supabase = makeSupabase([{ ...confirmedSub, locations: ['location-a'] }]);
+    // Flavor appeared at location-b, but sub only watches location-a
+    const newFlavors = [{ location: 'location-b', flavor_name: "Big G's Cookies & Dream" }];
+
+    await notifySubscribers(supabase, resend, newFlavors, locations);
+
+    expect(resend.emails.send).not.toHaveBeenCalled();
+  });
+
+  it('day-2 scenario: sends one email for locationB only when locationA flavor is not new', async () => {
+    // Day 1: locationA got the flavor → getNewFlavors returned it → user was notified.
+    // Day 2: locationA still has the flavor (first_seen=day1, so getNewFlavors excludes it).
+    //        locationB first has the flavor today → getNewFlavors returns only locationB.
+    // Expected: exactly one email mentioning Location B, not Location A.
+    const resend = makeResend();
+    const supabase = makeSupabase([confirmedSub]);
+    const newFlavors = [{ location: 'location-b', flavor_name: "Big G's Cookies & Dream" }];
+
+    await notifySubscribers(supabase, resend, newFlavors, locations);
+
+    expect(resend.emails.send).toHaveBeenCalledOnce();
+    const sentArgs = resend.emails.send.mock.calls[0][0];
+    expect(sentArgs.to).toBe('test@example.com');
+    expect(sentArgs.html).toContain('Location B');
+    expect(sentArgs.html).not.toContain('Location A');
+  });
+
+  it('sends one email listing both locations when both are new on the same day', async () => {
+    const resend = makeResend();
+    const supabase = makeSupabase([confirmedSub]);
+    const newFlavors = [
+      { location: 'location-a', flavor_name: "Big G's Cookies & Dream" },
+      { location: 'location-b', flavor_name: "Big G's Cookies & Dream" },
+    ];
+
+    await notifySubscribers(supabase, resend, newFlavors, locations);
+
+    expect(resend.emails.send).toHaveBeenCalledOnce();
+    const sentArgs = resend.emails.send.mock.calls[0][0];
+    expect(sentArgs.html).toContain('Location A');
+    expect(sentArgs.html).toContain('Location B');
   });
 });

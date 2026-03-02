@@ -171,7 +171,7 @@ export async function upsertFlavors(supabase, slug, flavors) {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
-async function getNewFlavors(supabase) {
+export async function getNewFlavors(supabase) {
   const today = new Date().toISOString().split('T')[0];
   const { data, error } = await supabase
     .from('flavors')
@@ -182,7 +182,7 @@ async function getNewFlavors(supabase) {
   return data || [];
 }
 
-async function notifySubscribers(supabase, resend, newFlavors, locations) {
+export async function notifySubscribers(supabase, resend, newFlavors, locations) {
   if (newFlavors.length === 0 || !resend) return;
 
   const { data: subscriptions, error } = await supabase
