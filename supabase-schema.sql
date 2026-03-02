@@ -42,6 +42,12 @@ CREATE TABLE subscriptions (
 -- If the table already exists, add the column:
 -- ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS flavor_name TEXT;
 
+-- Row Level Security (all access goes through the service role key, which bypasses RLS;
+-- these block any anon/authenticated-role access as a fail-safe)
+ALTER TABLE locations     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flavors       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
 -- Seed locations
 INSERT INTO locations (slug, name, url, address) VALUES
   ('south-boulder',       'South Boulder',       'https://sweetcow.com/south-boulder/',        '669 South Broadway, Boulder'),
