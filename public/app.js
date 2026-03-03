@@ -1,3 +1,5 @@
+import { sortLocationResults } from '../lib/sort.js';
+
 let allLocationData = [];
 let currentSearchFlavor = '';
 let requestedFlavor = null;
@@ -206,7 +208,8 @@ function displayResults(targetFlavor) {
         };
     });
 
-    const foundLocations = results.filter(r => r.found);
+    const sorted = sortLocationResults(results);
+    const foundLocations = sorted.filter(r => r.found);
 
     let html = '';
 
@@ -247,7 +250,7 @@ function displayResults(targetFlavor) {
     }
 
     html += '<div class="results-grid">';
-    results.forEach(result => {
+    sorted.forEach(result => {
         const cardClass = result.found ? 'found' : 'not-found';
         const statusText = result.found ? '✓ Available' : '✗ Not Available';
         const flavorTextFragment = result.found ? `#:~:text=${encodeURIComponent(targetFlavor)}` : '';
