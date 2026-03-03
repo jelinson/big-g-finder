@@ -336,4 +336,5 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     requestedFlavor = params.get('flavor') || null;
     fetchAllLocations();
+    document.getElementById('subscribe-form').addEventListener('submit', submitSubscription);
 });
