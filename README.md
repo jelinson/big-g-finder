@@ -122,3 +122,12 @@ Run `supabase-schema.sql` once in the Supabase SQL editor to create tables and s
 3. Wait for Resend to verify (usually a few minutes)
 
 Emails are sent from `noreply@biggfinder.jelinson.com`.
+
+### Testing the Bounce/Complaint Webhook
+
+Resend provides magic email addresses that trigger specific events in production:
+
+- `bounced@resend.dev` — triggers an `email.bounced` event
+- `complained@resend.dev` — triggers an `email.complained` event
+
+Subscribe one of these addresses at [biggfinder.jelinson.com](https://biggfinder.jelinson.com). Resend will attempt to send the confirmation email, immediately fire the corresponding webhook event, and the subscriber should be automatically removed from the database.
