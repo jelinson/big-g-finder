@@ -10,14 +10,19 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const today = new Date().toISOString().split('T')[0];
-
-  const [locResult, flavorResult] = await Promise.all([
+  const [locResult, latestDateResult] = await Promise.all([
     supabase.from('locations').select('*').eq('active', true),
-    supabase.from('flavors').select('location, flavor_name').eq('last_seen', today),
+    supabase.from('flavors').select('last_seen').order('last_seen', { ascending: false }).limit(1),
   ]);
 
   if (locResult.error) return res.status(500).json({ error: locResult.error.message });
+  if (latestDateResult.error) return res.status(500).json({ error: latestDateResult.error.message });
+
+  const latestDate = latestDateResult.data?.[0]?.last_seen;
+  const flavorResult = latestDate
+    ? await supabase.from('flavors').select('location, flavor_name').eq('last_seen', latestDate)
+    : { data: [], error: null };
+
   if (flavorResult.error) return res.status(500).json({ error: flavorResult.error.message });
 
   const bySlug = {};
