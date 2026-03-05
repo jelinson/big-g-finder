@@ -134,7 +134,7 @@ async function fetchAllLocations() {
                     Big G's Cookies & Dream is not currently available at any location
                     <div class="selector-container">
                         <label for="flavorSelectVisible" class="selector-label">Choose a different flavor, I guess:</label>
-                        <select id="flavorSelectVisible" class="flavor-select" onchange="selectFlavorFromVisible()">
+                        <select id="flavorSelectVisible" class="flavor-select">
                             ${select.innerHTML}
                         </select>
                     </div>
@@ -154,6 +154,8 @@ async function fetchAllLocations() {
             });
             html += '</div>';
             resultsDiv.innerHTML = html;
+            const earlyVisibleSelect = document.getElementById('flavorSelectVisible');
+            if (earlyVisibleSelect) earlyVisibleSelect.addEventListener('change', selectFlavorFromVisible);
             showSubscribeSection(currentSearchFlavor);
         }
 
@@ -223,7 +225,7 @@ function displayResults(targetFlavor) {
                 ${summaryText}
                 <div class="selector-container">
                     <label for="flavorSelectVisible" class="selector-label">Choose a different flavor, I guess:</label>
-                    <select id="flavorSelectVisible" class="flavor-select" onchange="selectFlavorFromVisible()">
+                    <select id="flavorSelectVisible" class="flavor-select">
                         ${hiddenSelect.innerHTML}
                     </select>
                     <p class="subscribe-hint">↓ Get notified for this flavor below</p>
@@ -240,7 +242,7 @@ function displayResults(targetFlavor) {
                 ${summaryText}
                 <div class="selector-container">
                     <label for="flavorSelectVisible" class="selector-label">Choose a different flavor, I guess:</label>
-                    <select id="flavorSelectVisible" class="flavor-select" onchange="selectFlavorFromVisible()">
+                    <select id="flavorSelectVisible" class="flavor-select">
                         ${hiddenSelect.innerHTML}
                     </select>
                     <p class="subscribe-hint">↓ Get notified for this flavor below</p>
@@ -271,7 +273,10 @@ function displayResults(targetFlavor) {
     resultsDiv.innerHTML = html;
 
     const newVisibleSelect = document.getElementById('flavorSelectVisible');
-    if (newVisibleSelect) newVisibleSelect.value = targetFlavor;
+    if (newVisibleSelect) {
+        newVisibleSelect.value = targetFlavor;
+        newVisibleSelect.addEventListener('change', selectFlavorFromVisible);
+    }
 
     showSubscribeSection(targetFlavor);
 }
