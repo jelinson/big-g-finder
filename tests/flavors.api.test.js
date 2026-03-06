@@ -11,14 +11,14 @@ function mockChain(data, error = null) {
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
   };
-  // Last call in chain resolves the promise
   Object.defineProperty(chain, 'then', {
     get() {
       return (resolve) => resolve({ data, error });
     },
   });
-  // Support Promise.all by making the chain itself a thenable
   chain[Symbol.toStringTag] = 'Promise';
   return chain;
 }
@@ -60,9 +60,15 @@ describe('GET /api/flavors', () => {
       { location: 'south-boulder', flavor_name: 'Salted Caramel' },
     ];
 
+    // flavors table is called twice: once for latest date, once for actual flavors
+    let flavorsCallCount = 0;
     mockFrom.mockImplementation((table) => {
       if (table === 'locations') return mockChain(locations);
-      if (table === 'flavors') return mockChain(flavors);
+      if (table === 'flavors') {
+        flavorsCallCount++;
+        if (flavorsCallCount === 1) return mockChain([{ last_seen: '2026-03-04' }]);
+        return mockChain(flavors);
+      }
     });
 
     const req = { method: 'GET' };
@@ -75,7 +81,27 @@ describe('GET /api/flavors', () => {
     expect(res._body.locations[0].flavors).toContain('Salted Caramel');
   });
 
-  it('returns empty flavors array for locations with no flavors today', async () => {
+  it('returns empty flavors array for locations with no flavors', async () => {
+    let flavorsCallCount = 0;
+    mockFrom.mockImplementation((table) => {
+      if (table === 'locations') return mockChain([
+        { slug: 'highlands', name: 'Highlands', url: 'https://sweetcow.com/highlands/', address: null, active: true },
+      ]);
+      if (table === 'flavors') {
+        flavorsCallCount++;
+        if (flavorsCallCount === 1) return mockChain([{ last_seen: '2026-03-04' }]);
+        return mockChain([]);
+      }
+    });
+
+    const req = { method: 'GET' };
+    const res = mockRes();
+    await handler(req, res);
+
+    expect(res._body.locations[0].flavors).toEqual([]);
+  });
+
+  it('returns empty flavors when no scrape data exists', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'locations') return mockChain([
         { slug: 'highlands', name: 'Highlands', url: 'https://sweetcow.com/highlands/', address: null, active: true },
@@ -87,6 +113,7 @@ describe('GET /api/flavors', () => {
     const res = mockRes();
     await handler(req, res);
 
+    expect(res._status).toBe(200);
     expect(res._body.locations[0].flavors).toEqual([]);
   });
 });
