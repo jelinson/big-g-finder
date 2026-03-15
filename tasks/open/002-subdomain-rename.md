@@ -1,7 +1,6 @@
 ---
 id: 002
 title: Rename subdomain biggfinder → biggsfinder
-status: open
 priority: medium
 evidence: none
 pr: ~

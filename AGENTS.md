@@ -4,6 +4,8 @@ This document tells autonomous Claude instances how to pick up and implement tas
 
 ## Picking a Task
 
+> If a specific task file was provided at invocation, skip this section and go straight to that file.
+
 1. List files in `tasks/open/` — sorted by ID (lowest first), then by priority (`high` > `medium` > `low`)
 2. Pick the highest-priority, lowest-ID task
 3. Move the task file to `tasks/in-progress/` before starting work
@@ -33,6 +35,21 @@ node scripts/screenshot.js --url "<vercel-preview-url>" --out screenshots/<task-
 
 Commit the screenshots alongside your changes.
 
+### Email Template Screenshots (if task modifies `lib/emails.js`)
+
+Run the preview script to render templates to HTML files:
+
+```bash
+npm run preview-emails
+```
+
+Then screenshot each affected preview file:
+
+```bash
+node scripts/screenshot.js --url "file://$(pwd)/email-previews/<template>-before.html" --out screenshots/<task-id>-email-before.png
+node scripts/screenshot.js --url "file://$(pwd)/email-previews/<template>-after.html" --out screenshots/<task-id>-email-after.png
+```
+
 ### No Screenshots
 
 Implement all `[AGENT]` steps, then run:
@@ -54,10 +71,14 @@ PR description must include:
 
 ## Closing a Task
 
-After the PR is opened, move the task file from `tasks/in-progress/` to `tasks/done/` and add the PR URL to its front matter, then commit that change as part of the same PR.
+Move the task file from `tasks/in-progress/` to `tasks/done/` and fill in the `pr` field with
+the PR URL, then commit that change as part of the same feature branch. This means the move to
+`done/` lands on main only when the PR is merged — branch protection is not an issue.
 
 ## Notes
 
+- Always work on a feature branch — never commit directly to `main`
 - Do not implement `[HUMAN]` steps — document them in the PR and stop
 - Do not open a PR if tests are failing
 - Do not modify other open tasks
+- Human review before merge is enforced by GitHub branch protection, not this workflow

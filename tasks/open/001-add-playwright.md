@@ -1,7 +1,6 @@
 ---
 id: 001
 title: Add Playwright for automated screenshots
-status: open
 priority: high
 evidence: none
 pr: ~

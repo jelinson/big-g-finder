@@ -1,7 +1,6 @@
 ---
 id: 003
 title: Add Sweet Cow store page links to flavor alert emails
-status: open
 priority: low
 evidence: screenshot
 pr: ~

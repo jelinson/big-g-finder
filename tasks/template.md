@@ -1,10 +1,9 @@
 ---
 id: 000
 title: Short descriptive title
-status: open
 priority: medium  # high | medium | low
-evidence: none    # none | screenshot
-pr: ~
+evidence: none    # none | screenshot | email
+pr: ~             # filled in by agent with PR URL after opening
 ---
 
 ## Goal
