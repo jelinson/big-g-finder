@@ -1,3 +1,4 @@
+import he from 'he';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
@@ -33,7 +34,7 @@ export default async function handler(req, res) {
 
   const displayFlavor = sub?.flavor_name ?? sub?.flavor_pattern;
   const flavorLine = displayFlavor
-    ? `<p>You'll no longer receive alerts for <strong>${displayFlavor}</strong>.</p>`
+    ? `<p>You'll no longer receive alerts for <strong>${he.escape(displayFlavor)}</strong>.</p>`
     : '';
 
   return res.status(200).send(`<!DOCTYPE html>
