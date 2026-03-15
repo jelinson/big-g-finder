@@ -90,6 +90,65 @@ describe('POST /api/subscribe', () => {
     await handler(mockReq('DELETE'), res);
     expect(res._status).toBe(405);
   });
+
+  it('returns 400 for flavorPattern containing HTML characters (<)', async () => {
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'test@example.com', flavorPattern: '<script>bad</script>' }), res);
+    expect(res._status).toBe(400);
+    expect(res._body?.error).toMatch(/invalid flavor/i);
+  });
+
+  it('returns 400 for flavorPattern containing HTML characters (")', async () => {
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'test@example.com', flavorPattern: 'Flavor "XSS"' }), res);
+    expect(res._status).toBe(400);
+    expect(res._body?.error).toMatch(/invalid flavor/i);
+  });
+
+  it('returns 400 for flavorPattern exceeding 200 characters', async () => {
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'test@example.com', flavorPattern: 'a'.repeat(201) }), res);
+    expect(res._status).toBe(400);
+  });
+
+  it("accepts flavorPattern with apostrophes (e.g. Big G's)", async () => {
+    mockChain.single.mockResolvedValueOnce({ data: { confirm_token: 'tok-apostrophe' }, error: null });
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'fan@example.com', flavorPattern: "Big G's Cookies & Dream" }), res);
+    expect(res._status).toBe(200);
+    expect(res._body?.ok).toBe(true);
+  });
+
+  it('returns 400 for email with consecutive dots', async () => {
+    const res = mockRes();
+    await handler(mockReq('POST', { email: 'test..bad@example.com', flavorPattern: 'Vanilla' }), res);
+    expect(res._status).toBe(400);
+    expect(res._body?.error).toMatch(/invalid email/i);
+  });
+
+  it('returns 400 for email exceeding 254 characters', async () => {
+    const longEmail = 'a'.repeat(249) + '@x.com'; // 255 chars, exceeds 254 limit
+    const res = mockRes();
+    await handler(mockReq('POST', { email: longEmail, flavorPattern: 'Vanilla' }), res);
+    expect(res._status).toBe(400);
+    expect(res._body?.error).toMatch(/invalid email/i);
+  });
+
+  it('returns 429 after exceeding rate limit', async () => {
+    // Make 5 successful requests, then a 6th should be rate-limited
+    mockChain.single.mockResolvedValue({ data: { confirm_token: 'tok' }, error: null });
+    const ip = '10.0.0.1';
+
+    for (let i = 0; i < 5; i++) {
+      const res = mockRes();
+      await handler({ method: 'POST', body: { email: `u${i}@example.com`, flavorPattern: 'Vanilla' }, headers: { 'x-forwarded-for': ip }, query: {} }, res);
+      expect(res._status).toBe(200);
+    }
+
+    const res = mockRes();
+    await handler({ method: 'POST', body: { email: 'over@example.com', flavorPattern: 'Vanilla' }, headers: { 'x-forwarded-for': ip }, query: {} }, res);
+    expect(res._status).toBe(429);
+  });
 });
 
 describe('GET /api/subscribe (confirm)', () => {

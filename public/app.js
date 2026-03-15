@@ -1,4 +1,12 @@
+import he from 'he';
 import { sortLocationResults } from '../lib/sort.js';
+
+function safeUrl(url) {
+    try {
+        const u = new URL(url);
+        return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
+    } catch { return '#'; }
+}
 
 let allLocationData = [];
 let currentSearchFlavor = '';
@@ -103,7 +111,7 @@ async function fetchAllLocations() {
         allLocationData.forEach(loc => {
             const label = document.createElement('label');
             label.className = 'checkbox-label';
-            label.innerHTML = `<input type="checkbox" name="location" value="${loc.slug}"> ${loc.location}`;
+            label.innerHTML = `<input type="checkbox" name="location" value="${he.escape(loc.slug)}"> ${he.escape(loc.location)}`;
             checkboxGrid.appendChild(label);
         });
 
@@ -143,10 +151,10 @@ async function fetchAllLocations() {
             html += '<div class="results-grid">';
             results.forEach(result => {
                 html += `
-                    <a href="${result.url}" target="_blank" class="result-card-link">
+                    <a href="${safeUrl(result.url)}" target="_blank" class="result-card-link">
                         <div class="result-card not-found">
-                            <div class="location-name">${result.location}</div>
-                            <div class="location-address">${result.address}</div>
+                            <div class="location-name">${he.escape(result.location)}</div>
+                            <div class="location-address">${he.escape(result.address ?? '')}</div>
                             <span class="status not-found">✗ Not Available</span>
                         </div>
                     </a>
@@ -218,7 +226,7 @@ function displayResults(targetFlavor) {
     if (foundLocations.length > 0) {
         const summaryText = isBigGs
             ? `Found at ${foundLocations.length} location${foundLocations.length > 1 ? 's' : ''}!`
-            : `${targetFlavor} found at ${foundLocations.length} location${foundLocations.length > 1 ? 's' : ''}!`;
+            : `${he.escape(targetFlavor)} found at ${foundLocations.length} location${foundLocations.length > 1 ? 's' : ''}!`;
         html += `
             <div class="summary">
                 <span class="emoji">🎉</span>
@@ -235,7 +243,7 @@ function displayResults(targetFlavor) {
     } else {
         const summaryText = isBigGs
             ? `Big G's Cookies & Dream is not currently available at any location`
-            : `${targetFlavor} is not currently available at any location`;
+            : `${he.escape(targetFlavor)} is not currently available at any location`;
         html += `
             <div class="summary">
                 <span class="emoji">😢</span>
@@ -259,10 +267,10 @@ function displayResults(targetFlavor) {
         const locationUrl = result.url + flavorTextFragment;
 
         html += `
-            <a href="${locationUrl}" target="_blank" class="result-card-link">
+            <a href="${safeUrl(locationUrl)}" target="_blank" class="result-card-link">
                 <div class="result-card ${cardClass}">
-                    <div class="location-name">${result.location}</div>
-                    <div class="location-address">${result.address}</div>
+                    <div class="location-name">${he.escape(result.location)}</div>
+                    <div class="location-address">${he.escape(result.address ?? '')}</div>
                     <span class="status ${cardClass}">${statusText}</span>
                 </div>
             </a>
