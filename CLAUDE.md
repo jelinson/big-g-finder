@@ -88,6 +88,26 @@ Vercel dashboard → Settings → Git → Connect Git Repository).
 
 Manual deploy: `vercel --prod`
 
+## Development Rules
+
+### Flavor names contain apostrophes
+Real flavor names include apostrophes — "Big G's Cookies & Dream", "S'mores", etc. Any input
+validation, regex, or character allowlist that touches flavor names **must** permit `'`. Never
+add `'` to a list of rejected characters.
+
+### Prefer established packages over custom implementations
+Use well-known npm packages rather than hand-rolling equivalents. Example: use `he` for HTML
+escaping, not a custom `escapeHtml` function.
+
+Exception: browser-side code loaded as an ES module without a bundler cannot use bare package
+specifiers (`import he from 'he'`). In that case, inline the logic or load from a CDN — but
+document why.
+
+### Smoke-test deployments before closing a PR
+After pushing to a preview deployment, run `/smoke-test <preview-url>` to verify the page
+loads, the API responds, and security headers are present. Do not mark a PR ready for review
+until the smoke test passes.
+
 ## Database Schema
 
 See `supabase-schema.sql`. Key tables:
