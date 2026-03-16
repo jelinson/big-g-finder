@@ -3,7 +3,7 @@ id: 002
 title: Rename subdomain biggfinder → biggsfinder
 priority: medium
 evidence: none
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/29
 ---
 
 ## Goal
