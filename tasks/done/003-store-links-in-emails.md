@@ -3,7 +3,7 @@ id: 003
 title: Add Sweet Cow store page links to flavor alert emails
 priority: low
 evidence: screenshot
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/30
 ---
 
 ## Goal

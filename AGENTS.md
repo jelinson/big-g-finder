@@ -67,7 +67,10 @@ PR description must include:
 1. A link to the task file (e.g. `tasks/in-progress/001-add-playwright.md`)
 2. A summary of what was implemented
 3. If draft: a `## Human Steps` checklist copied from the task, with clear instructions for the reviewer
-4. If screenshots: embed before/after images inline
+4. If screenshots: embed before/after images inline using absolute `raw.githubusercontent.com` URLs — relative paths do not render on GitHub. Format:
+   ```
+   ![label](https://raw.githubusercontent.com/jelinson/big-g-finder/<branch>/screenshots/<filename>.png)
+   ```
 
 ## Closing a Task
 
