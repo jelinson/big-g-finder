@@ -61,8 +61,8 @@ describe('buildNotifyEmail', () => {
 
   it('links each location name to its Sweet Cow store page', () => {
     const { html } = buildNotifyEmail(opts);
-    expect(html).toContain('href="https://sweetcow.com/locations/south-boulder"');
-    expect(html).toContain('href="https://sweetcow.com/locations/louisville"');
+    expect(html).toContain('href="https://sweetcow.com/locations/south-boulder#:~:text=Big%20G\'s%20Cookies%20%26%20Dream"');
+    expect(html).toContain('href="https://sweetcow.com/locations/louisville#:~:text=Big%20G\'s%20Cookies%20%26%20Dream"');
   });
 
   it('includes the flavor name in HTML', () => {

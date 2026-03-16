@@ -31,7 +31,7 @@ exports[`buildNotifyEmail > matches snapshot 1`] = `
 <body style="font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;color:#3D2817">
   <div style="max-width:600px;margin:40px auto;padding:20px;background:#ffffff;border-radius:8px">
   <h2>🍦 The flavor you're watching just appeared!</h2>
-  <ul style="line-height:1.8"><li><a href="https://sweetcow.com/locations/south-boulder" style="color:#3D2817">South Boulder</a>: Big G&#x27;s Cookies &amp; Dream</li><li><a href="https://sweetcow.com/locations/louisville" style="color:#3D2817">Louisville</a>: Big G&#x27;s Cookies &amp; Dream</li></ul>
+  <ul style="line-height:1.8"><li><a href="https://sweetcow.com/locations/south-boulder#:~:text=Big%20G's%20Cookies%20%26%20Dream" style="color:#3D2817">South Boulder</a>: Big G&#x27;s Cookies &amp; Dream</li><li><a href="https://sweetcow.com/locations/louisville#:~:text=Big%20G's%20Cookies%20%26%20Dream" style="color:#3D2817">Louisville</a>: Big G&#x27;s Cookies &amp; Dream</li></ul>
   <p style="margin:30px 0">
     <a href="https://biggfinder.jelinson.com"
        style="background:#FF6B9D;color:white;padding:14px 28px;border-radius:25px;text-decoration:none;font-weight:700;font-size:1rem">
