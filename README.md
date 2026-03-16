@@ -4,7 +4,7 @@
 
 Never miss Big G's Cookies & Dream again. Tracks Sweet Cow ice cream flavors across all Boulder/Denver locations and sends email alerts when a watched flavor appears.
 
-**Live site:** [biggfinder.jelinson.com](https://biggfinder.jelinson.com)
+**Live site:** [biggsfinder.jelinson.com](https://biggsfinder.jelinson.com)
 
 ---
 
@@ -34,7 +34,7 @@ Sweet Cow posts their daily flavors on their website, but there's no way to get 
 | Scraper | Node 20 (`scripts/scrape.js`), run by GitHub Actions |
 | Database | Supabase (Postgres) |
 | Email | Resend |
-| Domain | `biggfinder.jelinson.com` (Cloudflare → Vercel) |
+| Domain | `biggsfinder.jelinson.com` (Cloudflare → Vercel) |
 
 ---
 
@@ -70,7 +70,7 @@ tests/
 
 - Node 20
 - A Supabase project (see schema in `supabase-schema.sql`)
-- A Resend account with `biggfinder.jelinson.com` verified as a sending domain
+- A Resend account with `biggsfinder.jelinson.com` verified as a sending domain
 
 ### Environment Variables
 
@@ -81,7 +81,7 @@ SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 RESEND_API_KEY=
 RESEND_WEBHOOK_SECRET=   # from Resend dashboard → Webhooks → signing secret
-APP_URL=https://biggfinder.jelinson.com
+APP_URL=https://biggsfinder.jelinson.com
 ```
 
 ### Commands
@@ -117,11 +117,11 @@ Run `supabase-schema.sql` once in the Supabase SQL editor to create tables and s
 
 ### Email Domain (Resend)
 
-1. In Resend dashboard → **Domains → Add Domain** → enter `biggfinder.jelinson.com`
+1. In Resend dashboard → **Domains → Add Domain** → enter `biggsfinder.jelinson.com`
 2. Add the provided SPF, DKIM, and DMARC records in Cloudflare
 3. Wait for Resend to verify (usually a few minutes)
 
-Emails are sent from `noreply@biggfinder.jelinson.com`.
+Emails are sent from `noreply@biggsfinder.jelinson.com`.
 
 ### Testing the Bounce/Complaint Webhook
 
@@ -130,4 +130,4 @@ Resend provides magic email addresses that trigger specific events in production
 - `bounced@resend.dev` — triggers an `email.bounced` event
 - `complained@resend.dev` — triggers an `email.complained` event
 
-Subscribe one of these addresses at [biggfinder.jelinson.com](https://biggfinder.jelinson.com). Resend will attempt to send the confirmation email, immediately fire the corresponding webhook event, and the subscriber should be automatically removed from the database.
+Subscribe one of these addresses at [biggsfinder.jelinson.com](https://biggsfinder.jelinson.com). Resend will attempt to send the confirmation email, immediately fire the corresponding webhook event, and the subscriber should be automatically removed from the database.

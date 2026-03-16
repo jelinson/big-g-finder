@@ -13,7 +13,7 @@ when a watched flavor (default: Big G's Cookies & Dream) appears.
 | Database | Supabase (Postgres) |
 | Email | Resend |
 | DNS | Cloudflare (CNAME → Vercel, proxy off) |
-| Domain | `biggfinder.jelinson.com` |
+| Domain | `biggsfinder.jelinson.com` |
 
 ## Environment Variables
 
@@ -74,9 +74,9 @@ If a location is incorrectly excluded, check the `NON_LOCATION_SLUGS` blocklist 
 
 ## Email Domain Setup (Resend)
 
-Emails are sent from `noreply@biggfinder.jelinson.com`. To set this up:
+Emails are sent from `noreply@biggsfinder.jelinson.com`. To set this up:
 
-1. In Resend dashboard → Domains → Add Domain → enter `biggfinder.jelinson.com`
+1. In Resend dashboard → Domains → Add Domain → enter `biggsfinder.jelinson.com`
 2. Resend will provide SPF, DKIM, and DMARC DNS records
 3. Add those records in Cloudflare for `jelinson.com` (these are separate from the Vercel CNAME)
 4. Wait for Resend to verify (usually a few minutes)

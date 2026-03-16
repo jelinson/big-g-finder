@@ -9,7 +9,7 @@ vi.mock('resend', () => ({
 }));
 vi.mock('../lib/emails.js', () => ({
   buildConfirmEmail: vi.fn(() => ({
-    from: 'test@biggfinder.jelinson.com',
+    from: 'test@biggsfinder.jelinson.com',
     subject: 'Confirm',
     html: '<p>confirm</p>',
   })),

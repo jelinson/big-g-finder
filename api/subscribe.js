@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import { normalizeFlavorName } from '../lib/normalize.js';
 import { buildConfirmEmail } from '../lib/emails.js';
 
-const APP_URL = process.env.APP_URL || 'https://biggfinder.jelinson.com';
+const APP_URL = process.env.APP_URL || 'https://biggsfinder.jelinson.com';
 
 const rateLimitMap = new Map();
 const RATE_LIMIT_MAX = 5;

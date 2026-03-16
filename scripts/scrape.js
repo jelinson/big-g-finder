@@ -5,7 +5,7 @@ import { Resend } from 'resend';
 import { normalizeFlavorName, isValidFlavor } from '../lib/normalize.js';
 import { buildNotifyEmail } from '../lib/emails.js';
 
-const APP_URL = process.env.APP_URL || 'https://biggfinder.jelinson.com';
+const APP_URL = process.env.APP_URL || 'https://biggsfinder.jelinson.com';
 
 // Slugs that appear as links on sweetcow.com/locations/ but are not location pages
 const NON_LOCATION_SLUGS = new Set([
