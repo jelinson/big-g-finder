@@ -103,6 +103,11 @@ Exception: browser-side code loaded as an ES module without a bundler cannot use
 specifiers (`import he from 'he'`). In that case, inline the logic or load from a CDN — but
 document why.
 
+### Keep PRs minimal and scoped
+Each PR must contain only commits related to its stated purpose. Before opening a PR, run
+`git log <base>...HEAD` to verify every commit belongs. If unrelated commits are present
+(e.g. from a reused branch), start a fresh branch from the correct base instead.
+
 ### Smoke-test deployments before closing a PR
 After pushing to a preview deployment, run `/smoke-test <preview-url>` to verify the page
 loads, the API responds, and security headers are present. Do not mark a PR ready for review
