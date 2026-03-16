@@ -42,8 +42,8 @@ describe('buildConfirmEmail', () => {
 describe('buildNotifyEmail', () => {
   const opts = {
     matchingFlavors: [
-      { locationName: 'South Boulder', flavorName: "Big G's Cookies & Dream" },
-      { locationName: 'Louisville', flavorName: "Big G's Cookies & Dream" },
+      { locationName: 'South Boulder', flavorName: "Big G's Cookies & Dream", locationSlug: 'south-boulder' },
+      { locationName: 'Louisville', flavorName: "Big G's Cookies & Dream", locationSlug: 'louisville' },
     ],
     appUrl: 'https://biggfinder.jelinson.com',
     unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=unsub-token',
@@ -57,6 +57,12 @@ describe('buildNotifyEmail', () => {
     const { html } = buildNotifyEmail(opts);
     expect(html).toContain('South Boulder');
     expect(html).toContain('Louisville');
+  });
+
+  it('links each location name to its Sweet Cow store page', () => {
+    const { html } = buildNotifyEmail(opts);
+    expect(html).toContain('href="https://sweetcow.com/locations/south-boulder"');
+    expect(html).toContain('href="https://sweetcow.com/locations/louisville"');
   });
 
   it('includes the flavor name in HTML', () => {
@@ -79,7 +85,7 @@ describe('buildNotifyEmail', () => {
 
   it('tracker link includes flavor param for a non-default flavor', () => {
     const saltedOpts = {
-      matchingFlavors: [{ locationName: 'South Boulder', flavorName: 'Salted Caramel' }],
+      matchingFlavors: [{ locationName: 'South Boulder', flavorName: 'Salted Caramel', locationSlug: 'south-boulder' }],
       appUrl: 'https://biggfinder.jelinson.com',
       unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
     };
@@ -95,8 +101,8 @@ describe('buildNotifyEmail', () => {
   it('works for a different flavor (Salted Caramel)', () => {
     const saltedOpts = {
       matchingFlavors: [
-        { locationName: 'South Boulder', flavorName: 'Salted Caramel' },
-        { locationName: 'North Boulder', flavorName: 'Salted Caramel' },
+        { locationName: 'South Boulder', flavorName: 'Salted Caramel', locationSlug: 'south-boulder' },
+        { locationName: 'North Boulder', flavorName: 'Salted Caramel', locationSlug: 'north-boulder' },
       ],
       appUrl: 'https://biggfinder.jelinson.com',
       unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',

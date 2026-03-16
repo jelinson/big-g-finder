@@ -25,8 +25,8 @@ console.log('Wrote email-previews/confirm.html');
 
 const notify = buildNotifyEmail({
   matchingFlavors: [
-    { locationName: 'South Boulder', flavorName: flavor },
-    { locationName: 'Louisville', flavorName: flavor },
+    { locationName: 'South Boulder', flavorName: flavor, locationSlug: 'south-boulder' },
+    { locationName: 'Louisville', flavorName: flavor, locationSlug: 'louisville' },
   ],
   appUrl: 'https://biggfinder.jelinson.com',
   unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=preview-token',

@@ -212,6 +212,7 @@ export async function notifySubscribers(supabase, resend, newFlavors, locations)
       })
       .map(nf => ({
         locationName: locationBySlug.get(nf.location)?.name ?? nf.location,
+        locationSlug: nf.location,
         flavorName: nf.flavor_name,
       }));
 
