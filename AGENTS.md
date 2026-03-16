@@ -27,13 +27,15 @@ Implement all `[AGENT]` steps. Run the test suite:
 npm test
 ```
 
-Take an **after** screenshot using the Vercel preview URL (push your branch first and wait for the preview deployment, then use the URL Vercel posts to the GitHub PR):
+Take an **after** screenshot using a Vercel preview deployment. Run `vercel` (no flags) from the repo root to deploy a preview and get the URL immediately — no need to wait for GitHub Actions:
 
 ```bash
+vercel
+# copy the Preview URL from the output, then:
 node scripts/screenshot.js --url "<vercel-preview-url>" --out screenshots/<task-id>-after.png
 ```
 
-Commit the screenshots alongside your changes.
+Commit all screenshots alongside your changes.
 
 ### Email Template Screenshots (if task modifies `lib/emails.js`)
 
