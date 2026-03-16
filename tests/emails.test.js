@@ -4,11 +4,11 @@ import { buildConfirmEmail, buildNotifyEmail } from '../lib/emails.js';
 describe('buildConfirmEmail', () => {
   const opts = {
     flavorPattern: "Big G's Cookies & Dream",
-    confirmUrl: 'https://biggfinder.jelinson.com/api/subscribe?confirm=test-token-123',
+    confirmUrl: 'https://biggsfinder.jelinson.com/api/subscribe?confirm=test-token-123',
   };
 
-  it('sends from biggfinder.jelinson.com', () => {
-    expect(buildConfirmEmail(opts).from).toContain('biggfinder.jelinson.com');
+  it('sends from biggsfinder.jelinson.com', () => {
+    expect(buildConfirmEmail(opts).from).toContain('biggsfinder.jelinson.com');
   });
 
   it('includes the flavor name in the HTML', () => {
@@ -30,7 +30,7 @@ describe('buildConfirmEmail', () => {
   it('works for a different flavor (Salted Caramel)', () => {
     const saltedOpts = {
       flavorPattern: 'Salted Caramel',
-      confirmUrl: 'https://biggfinder.jelinson.com/api/subscribe?confirm=salted-token',
+      confirmUrl: 'https://biggsfinder.jelinson.com/api/subscribe?confirm=salted-token',
     };
     const email = buildConfirmEmail(saltedOpts);
     expect(email.html).toContain('Salted Caramel');
@@ -45,12 +45,12 @@ describe('buildNotifyEmail', () => {
       { locationName: 'South Boulder', flavorName: "Big G's Cookies & Dream" },
       { locationName: 'Louisville', flavorName: "Big G's Cookies & Dream" },
     ],
-    appUrl: 'https://biggfinder.jelinson.com',
-    unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=unsub-token',
+    appUrl: 'https://biggsfinder.jelinson.com',
+    unsubUrl: 'https://biggsfinder.jelinson.com/api/unsubscribe?token=unsub-token',
   };
 
-  it('sends from biggfinder.jelinson.com', () => {
-    expect(buildNotifyEmail(opts).from).toContain('biggfinder.jelinson.com');
+  it('sends from biggsfinder.jelinson.com', () => {
+    expect(buildNotifyEmail(opts).from).toContain('biggsfinder.jelinson.com');
   });
 
   it('includes all location names in HTML', () => {
@@ -68,23 +68,23 @@ describe('buildNotifyEmail', () => {
   });
 
   it('includes the app URL', () => {
-    expect(buildNotifyEmail(opts).html).toContain('biggfinder.jelinson.com');
+    expect(buildNotifyEmail(opts).html).toContain('biggsfinder.jelinson.com');
   });
 
   it("tracker link omits flavor param for Big G's (default flavor)", () => {
     const { html } = buildNotifyEmail(opts);
-    expect(html).toContain('href="https://biggfinder.jelinson.com"');
+    expect(html).toContain('href="https://biggsfinder.jelinson.com"');
     expect(html).not.toContain('?flavor=');
   });
 
   it('tracker link includes flavor param for a non-default flavor', () => {
     const saltedOpts = {
       matchingFlavors: [{ locationName: 'South Boulder', flavorName: 'Salted Caramel' }],
-      appUrl: 'https://biggfinder.jelinson.com',
-      unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
+      appUrl: 'https://biggsfinder.jelinson.com',
+      unsubUrl: 'https://biggsfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
     };
     expect(buildNotifyEmail(saltedOpts).html).toContain(
-      'href="https://biggfinder.jelinson.com?flavor=Salted%20Caramel"'
+      'href="https://biggsfinder.jelinson.com?flavor=Salted%20Caramel"'
     );
   });
 
@@ -98,8 +98,8 @@ describe('buildNotifyEmail', () => {
         { locationName: 'South Boulder', flavorName: 'Salted Caramel' },
         { locationName: 'North Boulder', flavorName: 'Salted Caramel' },
       ],
-      appUrl: 'https://biggfinder.jelinson.com',
-      unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
+      appUrl: 'https://biggsfinder.jelinson.com',
+      unsubUrl: 'https://biggsfinder.jelinson.com/api/unsubscribe?token=salted-unsub',
     };
     const { html } = buildNotifyEmail(saltedOpts);
     expect(html).toContain('Salted Caramel');

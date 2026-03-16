@@ -18,7 +18,7 @@ mkdirSync('email-previews', { recursive: true });
 
 const confirm = buildConfirmEmail({
   flavorPattern: flavor,
-  confirmUrl: 'https://biggfinder.jelinson.com/api/subscribe?confirm=preview-token',
+  confirmUrl: 'https://biggsfinder.jelinson.com/api/subscribe?confirm=preview-token',
 });
 writeFileSync('email-previews/confirm.html', confirm.html);
 console.log('Wrote email-previews/confirm.html');
@@ -28,8 +28,8 @@ const notify = buildNotifyEmail({
     { locationName: 'South Boulder', flavorName: flavor },
     { locationName: 'Louisville', flavorName: flavor },
   ],
-  appUrl: 'https://biggfinder.jelinson.com',
-  unsubUrl: 'https://biggfinder.jelinson.com/api/unsubscribe?token=preview-token',
+  appUrl: 'https://biggsfinder.jelinson.com',
+  unsubUrl: 'https://biggsfinder.jelinson.com/api/unsubscribe?token=preview-token',
 });
 writeFileSync('email-previews/notify.html', notify.html);
 console.log('Wrote email-previews/notify.html');
