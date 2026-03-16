@@ -16,6 +16,7 @@ exports[`buildConfirmEmail > matches snapshot 1`] = `
     </a>
   </p>
   <p style="font-size:12px;color:#999">If you didn't request this, you can safely ignore this email.</p>
+  <p style="font-size:11px;color:#ccc;margin-top:24px">Built with 🍦 by <a href="https://jelinson.com" style="color:#ccc">jelinson</a> &middot; <a href="https://github.com/jelinson/big-g-finder" style="color:#ccc">GitHub</a></p>
   </div>
 </body>
 </html>",
@@ -39,6 +40,7 @@ exports[`buildNotifyEmail > matches snapshot 1`] = `
     </a>
   </p>
   <p style="font-size:12px;color:#999"><a href="https://biggfinder.jelinson.com/api/unsubscribe?token=unsub-token" style="color:#999">Unsubscribe</a></p>
+  <p style="font-size:11px;color:#ccc;margin-top:24px">Built with 🍦 by <a href="https://jelinson.com" style="color:#ccc">jelinson</a> &middot; <a href="https://github.com/jelinson/big-g-finder" style="color:#ccc">GitHub</a></p>
   </div>
 </body>
 </html>",
