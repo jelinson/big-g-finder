@@ -3,7 +3,7 @@ id: 001
 title: Add Playwright for automated screenshots
 priority: high
 evidence: none
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/21
 ---
 
 ## Goal
