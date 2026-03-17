@@ -3,7 +3,7 @@ id: 006
 title: Collapse sequential Supabase queries in /api/flavors into one round trip
 priority: medium
 evidence: none
-pr: ~
+pr: 37
 ---
 
 ## Goal
@@ -13,9 +13,9 @@ sequential query that depends on the result of a prior query.
 
 ## Acceptance Criteria
 
-- [ ] `/api/flavors` makes at most 2 Supabase queries (locations + flavors) in a single round trip
-- [ ] Flavors returned are still from the most recent scrape date
-- [ ] All tests pass
+- [x] `/api/flavors` makes at most 2 Supabase queries (locations + flavors) in a single round trip
+- [x] Flavors returned are still from the most recent scrape date
+- [x] All tests pass
 
 ## Context
 
@@ -34,9 +34,9 @@ uncached request).
 
 ### [AGENT]
 
-- [ ] Rewrite `api/flavors.js` to run the locations query and the subquery-based flavors query in parallel via `Promise.all`
-- [ ] Remove the intermediate `latestDateResult` query
-- [ ] Run `npm test` and confirm all tests pass
+- [x] Rewrite `api/flavors.js` to run the locations query and the subquery-based flavors query in parallel via `Promise.all`
+- [x] Remove the intermediate `latestDateResult` query
+- [x] Run `npm test` and confirm all tests pass
 
 ## Out of Scope
 
