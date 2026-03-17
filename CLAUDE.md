@@ -44,7 +44,7 @@ lib/
   normalize.js      shared flavor normalization (used by scraper + subscribe API)
   emails.js         email template builders (used by scraper + subscribe API)
 scripts/
-  scrape.js         daily scraper with dynamic location discovery
+  scrape.js         scraper with dynamic location discovery (runs 3×/day via GitHub Actions)
   preview-emails.js renders email templates to email-previews/ for visual review
 tests/
   normalize.test.js unit tests for normalization functions
@@ -53,7 +53,7 @@ tests/
   flavors.api.test.js  integration tests for /api/flavors
   subscribe.api.test.js integration tests for /api/subscribe
 .github/workflows/
-  scrape.yml        daily cron at 8am MT + manual trigger
+  scrape.yml        cron 3×/day (6am, 12pm, 6pm MT) + manual trigger
   ci.yml            run tests on every push/PR
 sweet-cow-finder.html  frontend (single file)
 supabase-schema.sql    DB schema + seed data (run once in Supabase SQL editor)
@@ -61,7 +61,7 @@ supabase-schema.sql    DB schema + seed data (run once in Supabase SQL editor)
 
 ## Adding or Removing a Sweet Cow Location
 
-Locations are **auto-discovered** daily from `sweetcow.com` by the scraper. No code changes needed
+Locations are **auto-discovered** 3× daily from `sweetcow.com` by the scraper. No code changes needed
 when Sweet Cow opens or closes a location — the scraper detects it and updates the `locations`
 table automatically:
 
