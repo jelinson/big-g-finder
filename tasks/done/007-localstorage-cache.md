@@ -3,7 +3,7 @@ id: 007
 title: Cache /api/flavors response in localStorage for instant repeat visits
 priority: medium
 evidence: none
-pr: 36
+pr: https://github.com/jelinson/big-g-finder/pull/36
 ---
 
 ## Goal
