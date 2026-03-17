@@ -3,7 +3,7 @@ id: 000
 title: Short descriptive title
 priority: medium  # high | medium | low
 evidence: none    # none | screenshot | email
-pr: ~             # filled in by agent with PR URL after opening
+pr: ~             # filled in by agent with full PR URL after opening (e.g. https://github.com/jelinson/big-g-finder/pull/123)
 ---
 
 ## Goal
