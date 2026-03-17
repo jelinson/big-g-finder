@@ -3,7 +3,7 @@ id: 004
 title: Add "Built with 🍦 by jelinson" footer to site and emails
 priority: low
 evidence: screenshot
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/32
 ---
 
 ## Goal
