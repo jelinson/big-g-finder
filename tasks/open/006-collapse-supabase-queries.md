@@ -3,7 +3,7 @@ id: 006
 title: Collapse sequential Supabase queries in /api/flavors into one round trip
 priority: medium
 evidence: none
-pr: 37
+pr: https://github.com/jelinson/big-g-finder/pull/37
 ---
 
 ## Goal
