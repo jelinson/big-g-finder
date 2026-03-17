@@ -1,6 +1,6 @@
 # Big G's Finder
 
-[![CI](https://github.com/jelinson/big-g-finder/actions/workflows/ci.yml/badge.svg)](https://github.com/jelinson/big-g-finder/actions/workflows/ci.yml)
+[![CI](https://github.com/jelinson/big-g-finder/actions/workflows/ci.yml/badge.svg)](https://github.com/jelinson/big-g-finder/actions/workflows/ci.yml) [![Scrape](https://github.com/jelinson/big-g-finder/actions/workflows/scrape.yml/badge.svg)](https://github.com/jelinson/big-g-finder/actions/workflows/scrape.yml) [![Vercel](https://img.shields.io/github/deployments/jelinson/big-g-finder/Production?label=vercel&logo=vercel&logoColor=white)](https://biggfinder.jelinson.com)
 
 Never miss Big G's Cookies & Dream again. Tracks Sweet Cow ice cream flavors across all Boulder/Denver locations and sends email alerts when a watched flavor appears.
 
