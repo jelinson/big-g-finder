@@ -47,6 +47,25 @@ function isTargetFlavor(flavorName, targetFlavor) {
     }
 }
 
+const CACHE_KEY = 'bigg-flavors-v1';
+const CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
+
+function readCache() {
+    try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const entry = JSON.parse(raw);
+        if (Date.now() - entry.cachedAt < CACHE_TTL) return entry.data;
+    } catch { /* ignore parse/storage errors */ }
+    return null;
+}
+
+function writeCache(data) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, cachedAt: Date.now() }));
+    } catch { /* ignore storage errors (e.g. private browsing quota) */ }
+}
+
 async function fetchAllLocations() {
     const loading = document.getElementById('loading');
     const resultsDiv = document.getElementById('results');
@@ -55,10 +74,12 @@ async function fetchAllLocations() {
     resultsDiv.innerHTML = '';
 
     try {
-        const data = await fetch('/api/flavors').then(r => {
+        const cached = readCache();
+        const data = cached ?? await fetch('/api/flavors').then(r => {
             if (!r.ok) throw new Error(`API error ${r.status}`);
             return r.json();
         });
+        if (!cached) writeCache(data);
 
         allLocationData = data.locations.map(loc => ({
             location: loc.name,
