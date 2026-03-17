@@ -42,24 +42,32 @@ Sweet Cow posts their daily flavors on their website, but there's no way to get 
 
 ```
 api/
-  flavors.js          GET /api/flavors — today's flavors from Supabase
-  subscribe.js        POST /api/subscribe, GET /api/subscribe?confirm=<token>
-  unsubscribe.js      GET /api/unsubscribe?token=<token>
+  flavors.js              GET /api/flavors — today's flavors from Supabase
+  subscribe.js            POST /api/subscribe, GET /api/subscribe?confirm=<token>
+  unsubscribe.js          GET /api/unsubscribe?token=<token>
+  webhooks/
+    resend.js             POST /api/webhooks/resend — handles bounce/complaint events
 lib/
-  normalize.js        shared flavor normalization
-  emails.js           email template builders
+  normalize.js            shared flavor normalization
+  emails.js               email template builders
 scripts/
-  scrape.js           daily scraper with dynamic location discovery
-  preview-emails.js   renders email templates to email-previews/ for review
+  scrape.js               daily scraper with dynamic location discovery
+  preview-emails.js       renders email templates to email-previews/ for review
+  screenshot.js           captures screenshots of the live site
 tests/
   normalize.test.js
   emails.test.js
   scrape.test.js
+  flavor.select.test.js
+  sort.test.js
   flavors.api.test.js
   subscribe.api.test.js
+  subscribe.form.test.js
+  unsubscribe.api.test.js
+  webhook.api.test.js
 .github/workflows/
-  scrape.yml          daily cron (6am, 12pm, 6pm MT) + manual trigger
-  ci.yml              tests on every push/PR
+  scrape.yml              daily cron (6am, 12pm, 6pm MT) + manual trigger
+  ci.yml                  tests + lint on every push/PR
 ```
 
 ---
@@ -90,9 +98,11 @@ APP_URL=https://biggfinder.jelinson.com
 npm ci                    # install dependencies
 npm test                  # run all tests (vitest)
 npm run test:watch        # vitest in watch mode
+npm run lint              # run ESLint
 npm run scrape            # run scraper locally
 npm run preview-emails    # render email templates to email-previews/*.html
 npm run preview-emails -- --flavor "Salted Caramel"  # preview with a specific flavor
+npm run screenshot        # capture screenshot of live site
 ```
 
 ---
