@@ -3,7 +3,7 @@ id: 008
 title: Add font preconnect hints and font-display swap to reduce render blocking
 priority: low
 evidence: none
-pr: 35
+pr: https://github.com/jelinson/big-g-finder/pull/35
 ---
 
 ## Goal
