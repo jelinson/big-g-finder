@@ -10,23 +10,21 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const [locResult, latestDateResult] = await Promise.all([
+  const [locResult, flavorResult] = await Promise.all([
     supabase.from('locations').select('*').eq('active', true),
-    supabase.from('flavors').select('last_seen').order('last_seen', { ascending: false }).limit(1),
+    supabase.from('flavors').select('location, flavor_name, last_seen').order('last_seen', { ascending: false }),
   ]);
 
   if (locResult.error) return res.status(500).json({ error: locResult.error.message });
-  if (latestDateResult.error) return res.status(500).json({ error: latestDateResult.error.message });
-
-  const latestDate = latestDateResult.data?.[0]?.last_seen;
-  const flavorResult = latestDate
-    ? await supabase.from('flavors').select('location, flavor_name').eq('last_seen', latestDate)
-    : { data: [], error: null };
-
   if (flavorResult.error) return res.status(500).json({ error: flavorResult.error.message });
 
+  const latestDate = flavorResult.data?.[0]?.last_seen ?? null;
+  const latestFlavors = latestDate
+    ? flavorResult.data.filter(row => row.last_seen === latestDate)
+    : [];
+
   const bySlug = {};
-  for (const row of flavorResult.data || []) {
+  for (const row of latestFlavors) {
     if (!bySlug[row.location]) bySlug[row.location] = [];
     bySlug[row.location].push(row.flavor_name);
   }

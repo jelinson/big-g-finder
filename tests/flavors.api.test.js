@@ -56,19 +56,14 @@ describe('GET /api/flavors', () => {
       { slug: 'south-boulder', name: 'South Boulder', url: 'https://sweetcow.com/south-boulder/', address: '669 S Broadway', active: true },
     ];
     const flavors = [
-      { location: 'south-boulder', flavor_name: "Big G's Cookies & Dream" },
-      { location: 'south-boulder', flavor_name: 'Salted Caramel' },
+      { location: 'south-boulder', flavor_name: "Big G's Cookies & Dream", last_seen: '2026-03-04' },
+      { location: 'south-boulder', flavor_name: 'Salted Caramel', last_seen: '2026-03-04' },
     ];
 
-    // flavors table is called twice: once for latest date, once for actual flavors
-    let flavorsCallCount = 0;
+    // locations and flavors queries run in parallel; flavors table is called once
     mockFrom.mockImplementation((table) => {
       if (table === 'locations') return mockChain(locations);
-      if (table === 'flavors') {
-        flavorsCallCount++;
-        if (flavorsCallCount === 1) return mockChain([{ last_seen: '2026-03-04' }]);
-        return mockChain(flavors);
-      }
+      if (table === 'flavors') return mockChain(flavors);
     });
 
     const req = { method: 'GET' };
@@ -82,16 +77,11 @@ describe('GET /api/flavors', () => {
   });
 
   it('returns empty flavors array for locations with no flavors', async () => {
-    let flavorsCallCount = 0;
     mockFrom.mockImplementation((table) => {
       if (table === 'locations') return mockChain([
         { slug: 'highlands', name: 'Highlands', url: 'https://sweetcow.com/highlands/', address: null, active: true },
       ]);
-      if (table === 'flavors') {
-        flavorsCallCount++;
-        if (flavorsCallCount === 1) return mockChain([{ last_seen: '2026-03-04' }]);
-        return mockChain([]);
-      }
+      if (table === 'flavors') return mockChain([]);
     });
 
     const req = { method: 'GET' };
