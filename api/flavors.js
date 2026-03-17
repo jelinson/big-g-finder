@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const config = { runtime: 'edge' };
+
+export default async function handler(request) {
+  if (request.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const supabase = createClient(
@@ -15,15 +20,30 @@ export default async function handler(req, res) {
     supabase.from('flavors').select('last_seen').order('last_seen', { ascending: false }).limit(1),
   ]);
 
-  if (locResult.error) return res.status(500).json({ error: locResult.error.message });
-  if (latestDateResult.error) return res.status(500).json({ error: latestDateResult.error.message });
+  if (locResult.error) {
+    return new Response(JSON.stringify({ error: locResult.error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (latestDateResult.error) {
+    return new Response(JSON.stringify({ error: latestDateResult.error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   const latestDate = latestDateResult.data?.[0]?.last_seen;
   const flavorResult = latestDate
     ? await supabase.from('flavors').select('location, flavor_name').eq('last_seen', latestDate)
     : { data: [], error: null };
 
-  if (flavorResult.error) return res.status(500).json({ error: flavorResult.error.message });
+  if (flavorResult.error) {
+    return new Response(JSON.stringify({ error: flavorResult.error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   const bySlug = {};
   for (const row of flavorResult.data || []) {
@@ -39,6 +59,11 @@ export default async function handler(req, res) {
     flavors: bySlug[loc.slug] || [],
   }));
 
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
-  return res.status(200).json({ locations });
+  return new Response(JSON.stringify({ locations }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 's-maxage=3600, stale-while-revalidate=600',
+    },
+  });
 }
