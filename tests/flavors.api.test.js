@@ -23,17 +23,15 @@ function mockChain(data, error = null) {
   return chain;
 }
 
-// Helper mock req/res
-function mockRes() {
-  const res = {
-    _status: 200,
-    _body: null,
-    _headers: {},
-    status(code) { this._status = code; return this; },
-    json(body) { this._body = body; return this; },
-    setHeader(k, v) { this._headers[k] = v; },
-  };
-  return res;
+// Helper to create a mock Request
+function mockRequest(method = 'GET') {
+  return new Request('http://localhost/api/flavors', { method });
+}
+
+// Helper to parse a Response body
+async function parseResponse(response) {
+  const body = await response.json();
+  return { status: response.status, body };
 }
 
 describe('GET /api/flavors', () => {
@@ -45,10 +43,9 @@ describe('GET /api/flavors', () => {
   });
 
   it('returns 405 for non-GET requests', async () => {
-    const req = { method: 'POST' };
-    const res = mockRes();
-    await handler(req, res);
-    expect(res._status).toBe(405);
+    const req = mockRequest('POST');
+    const response = await handler(req);
+    expect(response.status).toBe(405);
   });
 
   it('returns locations with flavors grouped by slug', async () => {
@@ -66,14 +63,14 @@ describe('GET /api/flavors', () => {
       if (table === 'flavors') return mockChain(flavors);
     });
 
-    const req = { method: 'GET' };
-    const res = mockRes();
-    await handler(req, res);
+    const req = mockRequest('GET');
+    const response = await handler(req);
+    const { status, body } = await parseResponse(response);
 
-    expect(res._status).toBe(200);
-    expect(res._body.locations).toHaveLength(1);
-    expect(res._body.locations[0].flavors).toContain("Big G's Cookies & Dream");
-    expect(res._body.locations[0].flavors).toContain('Salted Caramel');
+    expect(status).toBe(200);
+    expect(body.locations).toHaveLength(1);
+    expect(body.locations[0].flavors).toContain("Big G's Cookies & Dream");
+    expect(body.locations[0].flavors).toContain('Salted Caramel');
   });
 
   it('returns empty flavors array for locations with no flavors', async () => {
@@ -84,11 +81,11 @@ describe('GET /api/flavors', () => {
       if (table === 'flavors') return mockChain([]);
     });
 
-    const req = { method: 'GET' };
-    const res = mockRes();
-    await handler(req, res);
+    const req = mockRequest('GET');
+    const response = await handler(req);
+    const { body } = await parseResponse(response);
 
-    expect(res._body.locations[0].flavors).toEqual([]);
+    expect(body.locations[0].flavors).toEqual([]);
   });
 
   it('returns empty flavors when no scrape data exists', async () => {
@@ -99,11 +96,11 @@ describe('GET /api/flavors', () => {
       if (table === 'flavors') return mockChain([]);
     });
 
-    const req = { method: 'GET' };
-    const res = mockRes();
-    await handler(req, res);
+    const req = mockRequest('GET');
+    const response = await handler(req);
+    const { status, body } = await parseResponse(response);
 
-    expect(res._status).toBe(200);
-    expect(res._body.locations[0].flavors).toEqual([]);
+    expect(status).toBe(200);
+    expect(body.locations[0].flavors).toEqual([]);
   });
 });

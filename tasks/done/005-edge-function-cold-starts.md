@@ -3,7 +3,7 @@ id: 005
 title: Convert /api/flavors to Vercel Edge Function to eliminate cold starts
 priority: high
 evidence: none
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/34
 ---
 
 ## Goal
@@ -13,10 +13,10 @@ on the CDN edge globally with no cold start penalty, saving 1–3s on first visi
 
 ## Acceptance Criteria
 
-- [ ] `api/flavors.js` exports `export const config = { runtime: 'edge' }`
-- [ ] API still returns correct `{ locations: [...] }` response
-- [ ] All tests pass
-- [ ] Smoke test passes on preview deployment
+- [x] `api/flavors.js` exports `export const config = { runtime: 'edge' }`
+- [x] API still returns correct `{ locations: [...] }` response
+- [x] All tests pass
+- [x] Smoke test passes on preview deployment
 
 ## Context
 
@@ -29,11 +29,11 @@ converted to returning a `Response` object (Web standard) for the Edge runtime.
 
 ### [AGENT]
 
-- [ ] Add `export const config = { runtime: 'edge' }` to `api/flavors.js`
-- [ ] Convert handler signature from `(req, res)` to returning a `Response` object if required by Edge runtime
-- [ ] Verify `@supabase/supabase-js` createClient works in Edge (no Node-only APIs used)
-- [ ] Run `npm test` and confirm all tests pass
-- [ ] Deploy to preview and run `/smoke-test <preview-url>`
+- [x] Add `export const config = { runtime: 'edge' }` to `api/flavors.js`
+- [x] Convert handler signature from `(req, res)` to returning a `Response` object if required by Edge runtime
+- [x] Verify `@supabase/supabase-js` createClient works in Edge (no Node-only APIs used)
+- [x] Run `npm test` and confirm all tests pass
+- [x] Deploy to preview and run `/smoke-test <preview-url>`
 
 ## Out of Scope
 

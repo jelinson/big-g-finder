@@ -7,6 +7,9 @@ on:
     - cron: '0 1 * * *'   # 6pm MT
   workflow_dispatch:        # manual trigger for testing
 
+permissions:
+  contents: read
+
 jobs:
   scrape:
     runs-on: ubuntu-latest

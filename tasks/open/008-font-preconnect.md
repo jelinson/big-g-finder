@@ -3,7 +3,7 @@ id: 008
 title: Add font preconnect hints and font-display swap to reduce render blocking
 priority: low
 evidence: none
-pr: ~
+pr: https://github.com/jelinson/big-g-finder/pull/35
 ---
 
 ## Goal
@@ -13,9 +13,9 @@ to the font URL in `index.html`.
 
 ## Acceptance Criteria
 
-- [ ] `<link rel="preconnect" href="https://fonts.googleapis.com">` added before the fonts stylesheet
-- [ ] `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` added before the fonts stylesheet
-- [ ] `&display=swap` appended to the Google Fonts stylesheet URL
+- [x] `<link rel="preconnect" href="https://fonts.googleapis.com">` added before the fonts stylesheet
+- [x] `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` added before the fonts stylesheet
+- [x] `&display=swap` appended to the Google Fonts stylesheet URL (was already present)
 - [ ] Fonts still load and render correctly visually
 
 ## Context
@@ -29,8 +29,8 @@ font loads.
 
 ### [AGENT]
 
-- [ ] Add the two preconnect `<link>` tags to `<head>` in `index.html` before the Google Fonts `<link>`
-- [ ] Append `&display=swap` to the Google Fonts href
+- [x] Add the two preconnect `<link>` tags to `<head>` in `index.html` before the Google Fonts `<link>`
+- [x] Append `&display=swap` to the Google Fonts href (was already present)
 - [ ] Visually verify fonts still render (screenshot or manual check)
 
 ## Out of Scope
