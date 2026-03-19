@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       .update({ confirmed: true })
       .eq('confirm_token', confirm);
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: 'Failed to confirm subscription' });
 
     return res.redirect(302, `${APP_URL}/?subscribed=1`);
   }
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
 
     if (error) {
       if (error.code === '23505') return res.status(200).json({ ok: true }); // duplicate, silent
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: 'Failed to create subscription' });
     }
 
     const confirmUrl = `${APP_URL}/api/subscribe?confirm=${data.confirm_token}`;
