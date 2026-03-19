@@ -20,14 +20,8 @@ export default async function handler(request) {
     supabase.from('flavors').select('location, flavor_name, last_seen').order('last_seen', { ascending: false }),
   ]);
 
-  if (locResult.error) {
-    return new Response(JSON.stringify({ error: locResult.error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-  if (flavorResult.error) {
-    return new Response(JSON.stringify({ error: flavorResult.error.message }), {
+  if (locResult.error || flavorResult.error) {
+    return new Response(JSON.stringify({ error: 'Failed to load flavors' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
