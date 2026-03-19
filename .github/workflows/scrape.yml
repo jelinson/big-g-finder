@@ -1,4 +1,4 @@
-name: Scrape Sweet Cow Flavors
+name: Scraper
 
 on:
   schedule:
