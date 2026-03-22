@@ -15,7 +15,7 @@
     "screenshot": "node scripts/screenshot.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.1",
+    "@supabase/supabase-js": "^2.99.3",
     "cheerio": "^1.0.0",
     "he": "^1.2.0",
     "resend": "^6.9.3"
