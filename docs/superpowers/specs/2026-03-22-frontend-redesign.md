@@ -21,14 +21,17 @@ All 7 location names are hardcoded directly in `index.html` as fully rendered ca
 - Flavor selector row visible with default "Big G's Cookies & Dream ⭐"
 - Subscribe trigger is hidden until API responds
 
+**Static card DOM contract:**
+Each static card has a `data-slug` attribute matching the location's slug (e.g., `data-slug="south-boulder"`). The hydration logic in `app.js` uses this to find the correct card element and update it in place.
+
 **After API responds:**
-- JS walks the static cards and updates each one in place: `found` / `not-found` class, status badge, link href
+- JS matches each API location to its static card via `data-slug`, updates `found` / `not-found` class, status badge, and link `href`
 - Summary card updates to "🎉 Found at N locations!" or "😢 Not available at any location"
 - Subscribe trigger appears inside the summary card
 - Flavor dropdown options are populated from API response
 
 **If API returns locations not in static HTML:**
-- New cards are appended to the grid dynamically, no special visual treatment
+- New cards are appended to the grid dynamically (no `data-slug` match found), no special visual treatment
 - No user-facing alert; the backend handles drift detection separately
 
 **Static locations to hardcode:**
@@ -100,16 +103,16 @@ Subscribe functionality lives inside the summary card as a disclosure:
 🔔 Get notified when it changes ▸
 ┌─────────────────────────────────────────┐
 │  [ your@email.com          ] [Notify Me!]│
-│  We'll email when Big G's is spotted.   │
+│  We'll email when {flavor} is spotted.  │
 │  ▸ Filter by location (optional)        │
 └─────────────────────────────────────────┘
 ```
 
 - Clicking the trigger toggles the form open/closed
+- `{flavor}` in the hint text is dynamic — it updates whenever the selected flavor changes. A `data-flavor-display` element (or equivalent) inside the form holds the text, updated by the same `showSubscribeSection()` call that currently updates `#subscribe-flavor-display`
 - "Filter by location (optional)" is a nested disclosure that reveals the existing location checkboxes
 - Form submission behavior is unchanged (POST `/api/subscribe`)
 - Success/error message replaces the button area inline
-- The trigger text updates to reflect the selected flavor (same as current `subscribe-flavor-display`)
 
 ---
 
@@ -139,7 +142,13 @@ Cards remain links to the Sweet Cow location page (with `#:~:text=` fragment for
 
 ---
 
-## 7. Out of Scope
+## 7. Error State
+
+API failure (network error, 5xx) behavior is **unchanged** from the current implementation — the existing error div is rendered into `#results`. Updating the error state to match the new card-based layout is out of scope for this redesign.
+
+---
+
+## 8. Out of Scope
 
 - No changes to the API (`api/flavors.js`, `api/subscribe.js`)
 - No changes to the scraper or email templates
