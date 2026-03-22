@@ -75,7 +75,7 @@ function appendNewCard(loc, targetFlavor) {
     link.dataset.slug = loc.slug;
     link.innerHTML = `
         <div class="result-card ${found ? 'found' : 'not-found'}">
-            <div class="location-name">${escapeHtml(loc.name)}</div>
+            <div class="location-name">${escapeHtml(loc.location)}</div>
             <div class="location-address">${escapeHtml(loc.address ?? '')}</div>
             <span class="status ${found ? 'found' : 'not-found'}">${found ? '✓ Available' : '✗ Not Available'}</span>
         </div>
