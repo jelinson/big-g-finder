@@ -15,10 +15,13 @@ This document tells autonomous Claude instances how to pick up and implement tas
 
 ### Screenshots (if `evidence: screenshot` in front matter)
 
-Take a **before** screenshot first, before changing any code:
+Screenshots are taken using the Playwright MCP plugin. No local script is needed.
 
-```bash
-node scripts/screenshot.js --url "$APP_URL" --out screenshots/<task-id>-before.png
+Take a **before** screenshot first, before changing any code. Navigate to the live URL and capture:
+
+```
+mcp: playwright__browser_navigate { url: "$APP_URL" }
+mcp: playwright__browser_take_screenshot { path: "screenshots/<task-id>-before.png" }
 ```
 
 Implement all `[AGENT]` steps. Run the test suite:
@@ -27,12 +30,19 @@ Implement all `[AGENT]` steps. Run the test suite:
 npm test
 ```
 
-Take an **after** screenshot using `vercel dev` locally (Vercel preview URLs require login and will show a login page instead). Run it in the background, wait for it to be ready, screenshot, then kill it:
+Take an **after** screenshot against a local dev server:
 
 ```bash
 vercel dev --listen 3456 &
 sleep 5
-node scripts/screenshot.js --url "http://localhost:3456" --out screenshots/<task-id>-after.png
+```
+
+```
+mcp: playwright__browser_navigate { url: "http://localhost:3456" }
+mcp: playwright__browser_take_screenshot { path: "screenshots/<task-id>-after.png" }
+```
+
+```bash
 kill %1
 ```
 
@@ -48,9 +58,12 @@ npm run preview-emails
 
 Then screenshot each affected preview file:
 
-```bash
-node scripts/screenshot.js --url "file://$(pwd)/email-previews/<template>-before.html" --out screenshots/<task-id>-email-before.png
-node scripts/screenshot.js --url "file://$(pwd)/email-previews/<template>-after.html" --out screenshots/<task-id>-email-after.png
+```
+mcp: playwright__browser_navigate { url: "file://<absolute-path>/email-previews/<template>-before.html" }
+mcp: playwright__browser_take_screenshot { path: "screenshots/<task-id>-email-before.png" }
+
+mcp: playwright__browser_navigate { url: "file://<absolute-path>/email-previews/<template>-after.html" }
+mcp: playwright__browser_take_screenshot { path: "screenshots/<task-id>-email-after.png" }
 ```
 
 ### No Screenshots
