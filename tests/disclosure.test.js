@@ -24,7 +24,6 @@ beforeAll(async () => {
               <div id="location-checkboxes"></div>
               <button type="submit" id="subscribe-btn">Notify Me!</button>
             </form>
-            <div id="subscribe-message"></div>
           </div>
         </div>
       </div>
@@ -54,12 +53,12 @@ beforeAll(async () => {
 
 describe('notification disclosure', () => {
   it('form is hidden by default', () => {
-    expect(document.getElementById('notif-form').style.display).toBe('none');
+    expect(document.getElementById('notif-form').classList.contains('open')).toBe(false);
   });
 
   it('clicking trigger opens the form', () => {
     document.getElementById('notif-trigger').click();
-    expect(document.getElementById('notif-form').style.display).toBe('block');
+    expect(document.getElementById('notif-form').classList.contains('open')).toBe(true);
   });
 
   it('trigger gets .open class when open', () => {
@@ -68,7 +67,7 @@ describe('notification disclosure', () => {
 
   it('clicking trigger again closes the form', () => {
     document.getElementById('notif-trigger').click();
-    expect(document.getElementById('notif-form').style.display).toBe('none');
+    expect(document.getElementById('notif-form').classList.contains('open')).toBe(false);
   });
 
   it('trigger loses .open class when closed', () => {

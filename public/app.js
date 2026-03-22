@@ -120,10 +120,20 @@ function initDisclosureTrigger() {
     const form = document.getElementById('notif-form');
     if (!trigger || !form) return;
     trigger.addEventListener('click', () => {
-        const isOpen = form.style.display !== 'none';
-        form.style.display = isOpen ? 'none' : 'block';
+        const isOpen = form.classList.contains('open');
+        form.classList.toggle('open', !isOpen);
         trigger.classList.toggle('open', !isOpen);
     });
+
+    const filterBtn = document.getElementById('location-filter-btn');
+    const filterPanel = document.getElementById('location-filter-panel');
+    if (filterBtn && filterPanel) {
+        filterBtn.addEventListener('click', () => {
+            const isOpen = filterPanel.classList.contains('open');
+            filterPanel.classList.toggle('open', !isOpen);
+            filterBtn.classList.toggle('active', !isOpen);
+        });
+    }
 }
 
 // ── Core data logic ────────────────────────────────────────────
@@ -183,11 +193,32 @@ async function fetchAllLocations() {
         // Build location checkboxes
         const checkboxGrid = document.getElementById('location-checkboxes');
         if (checkboxGrid) {
+            // "All locations" — pre-selected, acts as a deselect-all toggle
+            const allLabel = document.createElement('label');
+            allLabel.className = 'checkbox-label';
+            allLabel.innerHTML = `<input type="checkbox" name="location" value="" id="loc-all-checkbox" checked> All locations`;
+            checkboxGrid.appendChild(allLabel);
+
             allLocationData.forEach(loc => {
                 const label = document.createElement('label');
                 label.className = 'checkbox-label';
                 label.innerHTML = `<input type="checkbox" name="location" value="${escapeHtml(loc.slug)}"> ${escapeHtml(loc.location)}`;
                 checkboxGrid.appendChild(label);
+            });
+
+            // Mutual exclusion: picking a specific location unchecks "All", checking "All" clears specifics
+            checkboxGrid.addEventListener('change', e => {
+                const allBox = document.getElementById('loc-all-checkbox');
+                if (!allBox) return;
+                if (e.target === allBox) {
+                    if (allBox.checked) {
+                        checkboxGrid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)').forEach(cb => { cb.checked = false; });
+                    }
+                } else {
+                    if (e.target.checked) allBox.checked = false;
+                    const anyChecked = Array.from(checkboxGrid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)')).some(cb => cb.checked);
+                    if (!anyChecked) allBox.checked = true;
+                }
             });
         }
 
@@ -256,11 +287,16 @@ function displayResults(targetFlavor) {
 async function submitSubscription(event) {
     event.preventDefault();
     const btn = document.getElementById('subscribe-btn');
-    const msgEl = document.getElementById('subscribe-message');
+    let msgEl = document.getElementById('subscribe-message');
+    if (!msgEl) {
+        msgEl = document.createElement('div');
+        msgEl.id = 'subscribe-message';
+        document.getElementById('notif-form').appendChild(msgEl);
+    }
     const email = document.getElementById('subscribe-email').value.trim();
     const flavorPattern = currentSearchFlavor;
 
-    const checkedBoxes = document.querySelectorAll('#location-checkboxes input[type=checkbox]:checked');
+    const checkedBoxes = document.querySelectorAll('#location-checkboxes input[type=checkbox]:checked:not(#loc-all-checkbox)');
     const locations = Array.from(checkedBoxes).map(cb => cb.value);
 
     btn.disabled = true;

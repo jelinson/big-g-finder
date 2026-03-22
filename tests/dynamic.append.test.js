@@ -32,7 +32,6 @@ beforeAll(async () => {
               <div id="location-checkboxes"></div>
               <button type="submit" id="subscribe-btn">Notify Me!</button>
             </form>
-            <div id="subscribe-message"></div>
           </div>
         </div>
       </div>

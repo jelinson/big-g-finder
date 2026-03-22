@@ -24,35 +24,33 @@
             <p class="subtitle">Find Sweet Cow's best flavor</p>
         </header>
 
-        <div class="flavor-pill">
-            <span class="flavor-pill-label">Flavor:</span>
-            <select id="flavorSelect" class="flavor-select-inline">
-                <option value="" disabled>Loading…</option>
-            </select>
-        </div>
-
         <div id="results"></div>
 
         <div id="loc-summary" class="summary-card">
+            <div class="flavor-pill">
+                <span class="flavor-pill-label">Flavor:</span>
+                <select id="flavorSelect" class="flavor-select-inline">
+                    <option value="" disabled>Loading…</option>
+                </select>
+            </div>
             <div id="loc-summary-text" class="summary-text">🔍 Checking all locations…</div>
             <div id="notif-section" style="display:none">
                 <button type="button" id="notif-trigger" class="notif-trigger">
                     🔔 Get notified when it changes <span class="notif-arrow">▾</span>
                 </button>
-                <div id="notif-form" class="notif-form" style="display:none">
+                <div id="notif-form" class="notif-form">
                     <form id="subscribe-form">
                         <div class="notif-form-row">
                             <input type="email" id="subscribe-email" class="notif-input"
                                 placeholder="your@email.com" required autocomplete="email">
+                            <button type="button" id="location-filter-btn" class="notif-filter-btn">📍 Filter</button>
                             <button type="submit" class="notif-btn" id="subscribe-btn">Notify Me!</button>
                         </div>
                         <p class="notif-hint">We'll email when <span id="notif-flavor">this flavor</span> is spotted.</p>
-                        <details class="location-checkboxes">
-                            <summary>Filter by location (optional)</summary>
+                        <div id="location-filter-panel" class="location-filter-panel">
                             <div class="checkbox-grid" id="location-checkboxes"></div>
-                        </details>
+                        </div>
                     </form>
-                    <div id="subscribe-message" class="subscribe-message"></div>
                 </div>
             </div>
         </div>

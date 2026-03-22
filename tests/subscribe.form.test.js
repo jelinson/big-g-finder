@@ -26,7 +26,6 @@ beforeAll(async () => {
               <div id="location-checkboxes"></div>
               <button type="submit" id="subscribe-btn">Notify Me!</button>
             </form>
-            <div id="subscribe-message"></div>
           </div>
         </div>
       </div>
@@ -60,8 +59,7 @@ beforeEach(() => {
   fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(FLAVORS_RESPONSE) });
   document.getElementById('subscribe-email').value = '';
   const msg = document.getElementById('subscribe-message');
-  msg.textContent = '';
-  msg.className = 'subscribe-message';
+  if (msg) { msg.textContent = ''; msg.className = 'subscribe-message'; }
 });
 
 describe('subscribe form', () => {
