@@ -11,17 +11,31 @@ const FLAVORS_RESPONSE = {
 beforeAll(async () => {
   document.body.innerHTML = `
     <div class="container">
-      <div id="loading"></div>
-      <select id="flavorSelect"></select>
+      <div class="flavor-pill">
+        <select id="flavorSelect"></select>
+      </div>
       <div id="results"></div>
-      <div id="subscribe-section" style="display:none">
-        <span id="subscribe-flavor-display"></span>
-        <form id="subscribe-form">
-          <input type="email" id="subscribe-email">
-          <div id="location-checkboxes"></div>
-          <button type="submit" id="subscribe-btn">Notify Me!</button>
-        </form>
-        <div id="subscribe-message"></div>
+      <div id="loc-summary">
+        <div id="loc-summary-text">🔍 Checking all locations…</div>
+        <div id="notif-section" style="display:none">
+          <button type="button" id="notif-trigger">🔔 Get notified</button>
+          <div id="notif-form" style="display:none">
+            <form id="subscribe-form">
+              <input type="email" id="subscribe-email">
+              <span id="notif-flavor"></span>
+              <div id="location-checkboxes"></div>
+              <button type="submit" id="subscribe-btn">Notify Me!</button>
+            </form>
+            <div id="subscribe-message"></div>
+          </div>
+        </div>
+      </div>
+      <div id="loc-grid">
+        <a href="https://sweetcow.com/pearl-st/" target="_blank" data-slug="pearl-st">
+          <div class="result-card loading">
+            <span class="status loading">⟳ Loading</span>
+          </div>
+        </a>
       </div>
     </div>
   `;
@@ -36,6 +50,9 @@ beforeAll(async () => {
 
   // Wait for the initial flavors fetch to complete before any tests run
   await vi.waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/flavors'));
+  await vi.waitFor(() =>
+    expect(document.querySelector('[data-slug="pearl-st"] .result-card').classList.contains('loading')).toBe(false)
+  );
 });
 
 beforeEach(() => {
