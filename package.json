@@ -11,8 +11,7 @@
     "preview-emails": "node scripts/preview-emails.js",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "screenshot": "node scripts/screenshot.js"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",

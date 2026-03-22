@@ -530,3 +530,10 @@ h1 {
 @media (max-width: 500px) {
     .checkbox-grid { grid-template-columns: 1fr; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-decoration { animation: none; }
+    .search-button { animation: none; }
+    .emoji         { animation: none; }
+    .spinner       { animation: spin 1s linear infinite; } /* keep — functional */
+}
