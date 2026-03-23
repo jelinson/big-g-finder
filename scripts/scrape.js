@@ -7,6 +7,13 @@ import { buildNotifyEmail } from '../lib/emails.js';
 
 const APP_URL = process.env.APP_URL || 'https://biggfinder.jelinson.com';
 
+// Slugs hardcoded in index.html as static cards.
+// Keep in sync — the scraper alerts when active DB locations diverge from this list.
+const STATIC_HTML_SLUGS = new Set([
+  'south-boulder', 'north-boulder', 'louisville', 'longmont',
+  'highlands', 'stanley-marketplace', 'platt-park',
+]);
+
 // Slugs that appear as links on sweetcow.com/locations/ but are not location pages
 const NON_LOCATION_SLUGS = new Set([
   'about', 'catering', 'contact', 'careers', 'merch', 'gift-cards', 'gift-card',
@@ -230,6 +237,46 @@ export async function notifySubscribers(supabase, resend, newFlavors, locations)
   }
 }
 
+// ── Static HTML drift check ───────────────────────────────────────────────────
+
+export async function checkStaticHtmlDrift(resend, activeLocations) {
+  const activeSlugs = new Set(activeLocations.map(l => l.slug));
+
+  const missing = [...activeSlugs].filter(s => !STATIC_HTML_SLUGS.has(s));
+  const stale = [...STATIC_HTML_SLUGS].filter(s => !activeSlugs.has(s));
+
+  if (missing.length === 0 && stale.length === 0) return;
+
+  const lines = [];
+  if (missing.length > 0) {
+    lines.push(`New locations not in static HTML: ${missing.join(', ')}`);
+  }
+  if (stale.length > 0) {
+    lines.push(`Static HTML locations no longer active: ${stale.join(', ')}`);
+  }
+  console.warn(`  STATIC HTML DRIFT: ${lines.join('; ')}`);
+
+  if (!resend) return;
+
+  const ALERT_TO = process.env.ALERT_EMAIL;
+  if (!ALERT_TO) {
+    console.warn('  No ALERT_EMAIL set — skipping drift email');
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: `Big G's Finder <noreply@biggfinder.jelinson.com>`,
+      to: ALERT_TO,
+      subject: "Big G's Finder: static HTML location drift detected",
+      text: `The active locations in the database no longer match the hardcoded cards in index.html.\n\n${lines.join('\n')}\n\nUpdate index.html and the STATIC_HTML_SLUGS set in scripts/scrape.js, then open a PR.`,
+    });
+    console.log(`  Drift alert sent to ${ALERT_TO}`);
+  } catch (err) {
+    console.error(`  Failed to send drift alert:`, err.message);
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -282,6 +329,10 @@ async function main() {
     await notifySubscribers(supabase, resend, newFlavors, locations);
     await markFlavorsNotified(supabase);
   }
+
+  // 5. Check if static HTML cards are out of sync with active locations
+  console.log('Checking static HTML drift...');
+  await checkStaticHtmlDrift(resend, locations);
 
   console.log('Done.');
 }

@@ -23,7 +23,7 @@ export default [
   {
     files: ['tests/**/*.js'],
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: globals.browser,
     },
   },
 ];

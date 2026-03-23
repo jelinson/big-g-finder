@@ -17,17 +17,22 @@ function safeUrl(url) {
     } catch { return '#'; }
 }
 
+// CSS.escape polyfill for environments that lack it (e.g. jsdom)
+const cssEscape = typeof CSS !== 'undefined' && CSS.escape
+    ? CSS.escape
+    : s => s.replace(/([^\w-])/g, '\\$1');
+
 let allLocationData = [];
 let currentSearchFlavor = '';
 let requestedFlavor = null;
 
 function normalizeFlavorName(name) {
     return name.toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-        .replace(/big\s*g[''']?s?/i, 'bigg')
-        .replace(/gigantic[''']?s?/i, 'gigantic')
-        .replace(/cookie[s]?/i, 'cookie')
-        .replace(/dream[s]?/i, 'dream');
+        .replace(/big\s*g[''']?s?/, 'bigg')
+        .replace(/gigantic[''']?s?/, 'gigantic')
+        .replace(/cookie[s]?/, 'cookie')
+        .replace(/dream[s]?/, 'dream')
+        .replace(/[^a-z0-9]/g, '');
 }
 
 function isTargetFlavor(flavorName, targetFlavor) {
@@ -49,7 +54,7 @@ function isTargetFlavor(flavorName, targetFlavor) {
 // ── Hydration helpers ──────────────────────────────────────────
 
 function hydrateCard(slug, result, targetFlavor) {
-    const link = document.querySelector(`[data-slug="${slug}"]`);
+    const link = document.querySelector(`[data-slug="${cssEscape(slug)}"]`);
     if (!link) return;
     const card = link.querySelector('.result-card');
     const status = link.querySelector('.status');
@@ -67,6 +72,7 @@ function hydrateCard(slug, result, targetFlavor) {
 function appendNewCard(loc, targetFlavor) {
     const grid = document.getElementById('loc-grid');
     if (!grid) return;
+    if (document.querySelector(`[data-slug="${cssEscape(loc.slug)}"]`)) return;
     const found = loc.flavors.some(f => normalizeFlavorName(f) === normalizeFlavorName(targetFlavor));
     const link = document.createElement('a');
     link.href = safeUrl(loc.url + (found ? `#:~:text=${encodeURIComponent(targetFlavor)}` : ''));
@@ -87,7 +93,7 @@ function reorderGrid(sorted) {
     const grid = document.getElementById('loc-grid');
     if (!grid) return;
     sorted.forEach(result => {
-        const el = document.querySelector(`[data-slug="${result.slug}"]`);
+        const el = document.querySelector(`[data-slug="${cssEscape(result.slug)}"]`);
         if (el) grid.appendChild(el);
     });
 }
@@ -175,7 +181,7 @@ async function fetchAllLocations() {
 
         const starFlavor = bigGsFlavor ?? "Big G's Cookies & Dream";
         const starOption = document.createElement('option');
-        starOption.value = bigGsFlavor ?? starFlavor;
+        starOption.value = starFlavor;
         starOption.textContent = `${starFlavor} ⭐`;
         starOption.selected = true;
         select.appendChild(starOption);
@@ -267,7 +273,7 @@ function displayResults(targetFlavor) {
 
     // Hydrate static cards or append new ones
     sorted.forEach(result => {
-        const existing = document.querySelector(`[data-slug="${result.slug}"]`);
+        const existing = document.querySelector(`[data-slug="${cssEscape(result.slug)}"]`);
         if (existing) {
             hydrateCard(result.slug, result, targetFlavor);
         } else {
@@ -332,7 +338,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (params.get('subscribed') === '1') {
         const banner = document.createElement('div');
         banner.className = 'subscribed-banner';
-        banner.innerHTML = '✓ You\'re confirmed! We\'ll notify you when your flavor is spotted. <button class="banner-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>';
+        banner.innerHTML = '✓ You\'re confirmed! We\'ll notify you when your flavor is spotted. <button class="banner-close" aria-label="Dismiss">×</button>';
+        banner.querySelector('.banner-close').addEventListener('click', () => banner.remove());
         document.querySelector('.container').prepend(banner);
         history.replaceState(null, '', '/');
     }
