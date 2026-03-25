@@ -146,10 +146,12 @@ function initDisclosureTrigger() {
 
 async function fetchAllLocations() {
     try {
-        const data = await fetch('/api/flavors').then(r => {
+        const earlyPromise = window.__flavorsPromise;
+        delete window.__flavorsPromise;
+        const data = await (earlyPromise || fetch('/api/flavors').then(r => {
             if (!r.ok) throw new Error(`API error ${r.status}`);
             return r.json();
-        });
+        }));
 
         allLocationData = data.locations.map(loc => ({
             location: loc.name,
