@@ -21,7 +21,7 @@ export default [
     },
   },
   {
-    files: ['tests/flavor.select.test.js', 'tests/subscribe.form.test.js'],
+    files: ['tests/**/*.js'],
     languageOptions: {
       globals: globals.browser,
     },

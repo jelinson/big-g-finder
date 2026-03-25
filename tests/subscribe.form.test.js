@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
+import { buildScaffold } from './helpers/scaffold.js';
 
 const FLAVORS_RESPONSE = {
   locations: [{
@@ -9,22 +10,7 @@ const FLAVORS_RESPONSE = {
 };
 
 beforeAll(async () => {
-  document.body.innerHTML = `
-    <div class="container">
-      <div id="loading"></div>
-      <select id="flavorSelect"></select>
-      <div id="results"></div>
-      <div id="subscribe-section" style="display:none">
-        <span id="subscribe-flavor-display"></span>
-        <form id="subscribe-form">
-          <input type="email" id="subscribe-email">
-          <div id="location-checkboxes"></div>
-          <button type="submit" id="subscribe-btn">Notify Me!</button>
-        </form>
-        <div id="subscribe-message"></div>
-      </div>
-    </div>
-  `;
+  document.body.innerHTML = buildScaffold();
 
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
@@ -36,6 +22,9 @@ beforeAll(async () => {
 
   // Wait for the initial flavors fetch to complete before any tests run
   await vi.waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/flavors'));
+  await vi.waitFor(() =>
+    expect(document.querySelector('[data-slug="pearl-st"] .result-card').classList.contains('loading')).toBe(false)
+  );
 });
 
 beforeEach(() => {
@@ -43,8 +32,7 @@ beforeEach(() => {
   fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(FLAVORS_RESPONSE) });
   document.getElementById('subscribe-email').value = '';
   const msg = document.getElementById('subscribe-message');
-  msg.textContent = '';
-  msg.className = 'subscribe-message';
+  if (msg) { msg.textContent = ''; msg.className = 'subscribe-message'; }
 });
 
 describe('subscribe form', () => {
