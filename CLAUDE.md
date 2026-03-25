@@ -108,10 +108,12 @@ Each PR must contain only commits related to its stated purpose. Before opening 
 `git log <base>...HEAD` to verify every commit belongs. If unrelated commits are present
 (e.g. from a reused branch), start a fresh branch from the correct base instead.
 
-### Smoke-test deployments before closing a PR
-After pushing to a preview deployment, run `/smoke-test <preview-url>` to verify the page
-loads, the API responds, and security headers are present. Do not mark a PR ready for review
-until the smoke test passes.
+### Smoke-test every push to a PR
+After **every** push to a PR branch (initial push, review fixes, rebase, etc.), run
+`/smoke-test <preview-url>` against the Vercel preview deployment to verify the page loads,
+the API responds, security headers are present, and the page hydrates in a real browser. Do not mark a PR ready for review or
+request merge until the latest push's smoke test passes. This includes force-pushes after
+rebasing — a rebase can introduce breakage even when tests pass.
 
 ## Database Schema
 
