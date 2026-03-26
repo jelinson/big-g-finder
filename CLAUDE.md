@@ -110,8 +110,10 @@ Each PR must contain only commits related to its stated purpose. Before opening 
 
 ### Smoke-test every push to a PR
 After **every** push to a PR branch (initial push, review fixes, rebase, etc.), run
-`/smoke-test <preview-url>` against the Vercel preview deployment to verify the page loads,
-the API responds, security headers are present, and the page hydrates in a real browser. Do not mark a PR ready for review or
+`/smoke-test` against the Vercel preview deployment to verify the page loads,
+the API responds, security headers are present, and the page hydrates in a real browser.
+The smoke test will auto-discover the preview URL via the Vercel MCP — do **not** try to
+construct or guess the preview URL yourself. Do not mark a PR ready for review or
 request merge until the latest push's smoke test passes. This includes force-pushes after
 rebasing — a rebase can introduce breakage even when tests pass.
 
