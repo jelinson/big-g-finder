@@ -2,28 +2,36 @@
 name: smoke-test
 description: Smoke-test a deployed URL (production or Vercel preview) — checks page load, API, security headers, and browser hydration
 user_invocable: true
-arguments: URL to smoke-test (e.g. https://biggfinder.jelinson.com or a Vercel preview URL)
+arguments: Optional URL to smoke-test. If omitted, auto-discovers the latest preview URL via Vercel MCP.
 ---
 
-Run a smoke test against the deployed URL: $ARGUMENTS
+## Phase 0: Resolve the target URL
+
+If a URL was provided as `$ARGUMENTS`, use it directly. Otherwise, discover the latest preview deployment URL:
+
+1. Use `mcp__plugin_vercel_vercel__list_deployments` to find the most recent preview deployment for the current branch.
+2. Extract the deployment URL from the result.
+3. Use that URL as the target for all subsequent checks.
+
+If no deployments are found for the current branch, print an error and stop.
 
 ## Phase 1: curl checks
 
 Use the Bash tool to run these checks with curl. Print PASS or FAIL for each.
 
 **1. Homepage loads**
-- GET `$ARGUMENTS/`
+- GET `<target-url>/`
 - If you get HTTP 401/403, this is a Vercel preview deployment that requires auth. Use the `mcp__plugin_vercel_vercel__get_access_to_vercel_url` tool to get a shareable URL, then navigate to it in the Playwright browser to set the auth cookie. After that, re-run the curl check using the shareable URL with the `_vercel_share` parameter appended to each test URL.
 - Expect HTTP 200
 - Expect the response body to contain `Big G` (title text)
 
 **2. Flavors API returns valid data**
-- GET `$ARGUMENTS/api/flavors`
+- GET `<target-url>/api/flavors`
 - Expect HTTP 200
 - Expect valid JSON with a `locations` array
 
 **3. Subscribe API rejects bad input**
-- POST `$ARGUMENTS/api/subscribe` with `Content-Type: application/json` and body `{}`
+- POST `<target-url>/api/subscribe` with `Content-Type: application/json` and body `{}`
 - Expect HTTP 400
 
 **4. Security headers**
