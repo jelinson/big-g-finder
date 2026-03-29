@@ -22,14 +22,14 @@ beforeAll(async () => {
           <div class="result-card loading">
             <div class="location-name">Pearl St</div>
             <div class="location-address">1100 Pearl St</div>
-            <span class="status loading">⟳ Loading</span>
+            <span class="status loading"><span class="loading-dots"><span>🍦</span><span>🍦</span><span>🍦</span></span></span>
           </div>
         </a>
         <a href="https://sweetcow.com/table-mesa/" target="_blank" data-slug="table-mesa">
           <div class="result-card loading">
             <div class="location-name">Table Mesa</div>
             <div class="location-address">700 Table Mesa Dr</div>
-            <span class="status loading">⟳ Loading</span>
+            <span class="status loading"><span class="loading-dots"><span>🍦</span><span>🍦</span><span>🍦</span></span></span>
           </div>
         </a>`,
   });
