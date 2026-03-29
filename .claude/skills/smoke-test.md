@@ -55,15 +55,44 @@ Use the Playwright MCP tools to verify the page actually renders and hydrates:
    - No console errors related to app.js (ignore Vercel toolbar CSP errors)
 4. Print PASS/FAIL for browser verification
 
+## Phase 3: Mobile viewport check
+
+Verify the page renders correctly on a narrow screen (iPhone 15 = 393px):
+
+1. Use `browser_resize` to set viewport to 393×852
+2. Navigate to the URL (use shareable URL if needed)
+3. Wait for hydration (text "Available" appears)
+4. Use `browser_evaluate` to check for horizontal overflow on all visible elements:
+   ```js
+   () => {
+     const viewportWidth = document.documentElement.clientWidth;
+     const overflows = [];
+     document.querySelectorAll('body *').forEach(el => {
+       const rect = el.getBoundingClientRect();
+       if (rect.width > 0 && rect.right > viewportWidth + 1) {
+         overflows.push({
+           tag: el.tagName,
+           class: el.className,
+           right: Math.round(rect.right),
+           viewportWidth
+         });
+       }
+     });
+     return { pass: overflows.length === 0, overflows: overflows.slice(0, 10) };
+   }
+   ```
+5. Print PASS if no elements overflow the viewport. If FAIL, list the overflowing elements with their class names and how far they extend past the viewport edge.
+6. Use `browser_resize` to restore viewport to 1280×800
+
 ## Final summary
 
 Print the overall result:
 ```
-SMOKE TEST PASSED (8/8)
+SMOKE TEST PASSED (9/9)
 ```
 or
 ```
-SMOKE TEST FAILED (N/8) — [list failures]
+SMOKE TEST FAILED (N/9) — [list failures]
 ```
 
 If any check fails, show what was actually received to help diagnose the problem.
