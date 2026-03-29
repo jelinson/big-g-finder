@@ -30,10 +30,12 @@
             <div class="flavor-pill">
                 <span class="flavor-pill-label">Flavor:</span>
                 <select id="flavorSelect" class="flavor-select-inline">
-                    <option value="" disabled>Loading…</option>
+                    <option value="Big G's Cookies &amp; Dream">Big G's Cookies &amp; Dream ⭐</option>
                 </select>
+                <script>!function(){var p=new URLSearchParams(location.search),f=p.get('flavor');if(f){var s=document.getElementById('flavorSelect'),o=s.options[0];o.value=f;o.textContent=f}}()</script>
             </div>
             <div id="loc-summary-text" class="summary-text">🔍 Checking all locations…</div>
+            <script>!function(){var f=document.getElementById('flavorSelect').value;if(f){var t=document.getElementById('loc-summary-text');t.textContent='\uD83D\uDD0D Checking all locations for '+f+'…'}}()</script>
             <div id="notif-section" style="display:none">
                 <button type="button" id="notif-trigger" class="notif-trigger">
                     🔔 Get notified when it changes <span class="notif-arrow">▾</span>
