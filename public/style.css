@@ -668,6 +668,7 @@ h1 {
 
 @media (max-width: 500px) {
     .checkbox-grid { grid-template-columns: 1fr; }
+    .flavor-pill-label { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
