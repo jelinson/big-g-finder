@@ -199,6 +199,7 @@ h1 {
 
 .flavor-select-inline {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
@@ -212,6 +213,9 @@ h1 {
     background-repeat: no-repeat;
     background-position: right 4px center;
     padding-right: 28px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 @keyframes pulse {
@@ -669,6 +673,7 @@ h1 {
 @media (max-width: 500px) {
     .checkbox-grid { grid-template-columns: 1fr; }
     .flavor-pill-label { display: none; }
+    .flavor-pill { padding: 10px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
