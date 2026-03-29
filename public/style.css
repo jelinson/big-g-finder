@@ -329,6 +329,18 @@ h1 {
     font-size: 0.9rem;
 }
 
+.loading-spinner {
+    display: inline-block;
+    font-size: 1.6rem;
+    animation: spin 1.2s linear infinite;
+    filter: drop-shadow(0 0 3px var(--pink)) drop-shadow(0 0 6px var(--mint));
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .location-name {
     font-family: 'Fredoka', sans-serif;
     font-size: 2rem;

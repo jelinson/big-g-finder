@@ -12,7 +12,7 @@ export function buildScaffold({ locGridInner } = {}) {
           <div class="result-card loading">
             <div class="location-name">Pearl St</div>
             <div class="location-address">1100 Pearl St</div>
-            <span class="status loading">⟳ Loading</span>
+            <span class="status loading"><span class="loading-spinner">🍦</span> Loading</span>
           </div>
         </a>`;
 
