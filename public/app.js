@@ -1,6 +1,6 @@
 import { sortLocationResults } from '../lib/sort.js';
 
-// Inline HTML escaper — browser modules can't resolve bare 'he' specifier
+// Inline HTML escaper — bare specifiers can't be resolved in browser ES modules without a bundler
 function escapeHtml(str) {
     return String(str ?? '')
         .replace(/&/g, '&amp;')
