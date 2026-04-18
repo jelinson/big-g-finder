@@ -1,4 +1,8 @@
 import { sortLocationResults } from '../lib/sort.js';
+// CDN import: bare specifiers can't be resolved in browser ES modules without a bundler
+import { inject } from 'https://esm.sh/@vercel/analytics';
+
+inject();
 
 // Inline HTML escaper — browser modules can't resolve bare 'he' specifier
 function escapeHtml(str) {
