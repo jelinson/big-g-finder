@@ -10,7 +10,14 @@ jobs:
     steps:
       - uses: dependabot/fetch-metadata@v2
         id: meta
-      - if: steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor'
+      # Only auto-merge dev-dependency bumps. Runtime deps (supabase-js,
+      # resend, cheerio, he) deserve a human glance: a "minor" bump introduced
+      # a Node-runtime requirement that CI's mocked tests didn't catch (PR #70,
+      # supabase-js 2.103.0 → required global WebSocket).
+      - if: |
+          steps.meta.outputs.dependency-type == 'direct:development' &&
+          (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+           steps.meta.outputs.update-type == 'version-update:semver-minor')
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}

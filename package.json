@@ -9,6 +9,7 @@
   "scripts": {
     "scrape": "node scripts/scrape.js",
     "preview-emails": "node scripts/preview-emails.js",
+    "smoke-deps": "node scripts/smoke-deps.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
