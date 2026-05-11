@@ -3,6 +3,8 @@
 Tracks Sweet Cow ice cream flavors across all Boulder/Denver locations and sends email alerts
 when a watched flavor (default: Big G's Cookies & Dream) appears.
 
+For setup, env vars, and commands, see [README.md](README.md). This file documents conventions, gotchas, and operational runbooks.
+
 ## Stack
 
 | Layer | Technology |
@@ -14,50 +16,6 @@ when a watched flavor (default: Big G's Cookies & Dream) appears.
 | Email | Resend |
 | DNS | Cloudflare (CNAME → Vercel, proxy off) |
 | Domain | `biggfinder.jelinson.com` |
-
-## Environment Variables
-
-| Variable | Used by | Where to set |
-|---|---|---|
-| `SUPABASE_URL` | scraper, API | GitHub Secrets + Vercel env |
-| `SUPABASE_SERVICE_KEY` | scraper, API | GitHub Secrets + Vercel env |
-| `RESEND_API_KEY` | scraper, subscribe API | GitHub Secrets + Vercel env |
-| `APP_URL` | scraper, subscribe API | GitHub Secrets + Vercel env |
-
-## Development Commands
-
-```bash
-npm test                  # run all tests (vitest)
-npm run test:watch        # vitest in watch mode
-npm run scrape            # run scraper locally (requires env vars)
-npm run preview-emails    # render email templates to email-previews/*.html
-```
-
-## Project Structure
-
-```
-api/
-  flavors.js        GET /api/flavors — returns today's flavors from Supabase
-  subscribe.js      POST /api/subscribe, GET /api/subscribe?confirm=<token>
-  unsubscribe.js    GET /api/unsubscribe?token=<token>
-lib/
-  normalize.js      shared flavor normalization (used by scraper + subscribe API)
-  emails.js         email template builders (used by scraper + subscribe API)
-scripts/
-  scrape.js         scraper with dynamic location discovery (runs 3×/day via GitHub Actions)
-  preview-emails.js renders email templates to email-previews/ for visual review
-tests/
-  normalize.test.js unit tests for normalization functions
-  emails.test.js    snapshot tests for email templates
-  scrape.test.js    unit tests for scraper (mock fetch)
-  flavors.api.test.js  integration tests for /api/flavors
-  subscribe.api.test.js integration tests for /api/subscribe
-.github/workflows/
-  scrape.yml        cron 3×/day (6am, 12pm, 6pm MT) + manual trigger
-  ci.yml            run tests on every push/PR
-sweet-cow-finder.html  frontend (single file)
-supabase-schema.sql    DB schema + seed data (run once in Supabase SQL editor)
-```
 
 ## Adding or Removing a Sweet Cow Location
 
@@ -80,13 +38,6 @@ Emails are sent from `noreply@biggfinder.jelinson.com`. To set this up:
 2. Resend will provide SPF, DKIM, and DMARC DNS records
 3. Add those records in Cloudflare for `jelinson.com` (these are separate from the Vercel CNAME)
 4. Wait for Resend to verify (usually a few minutes)
-
-## Deployment
-
-Vercel auto-deploys on every push to `main` (once GitHub integration is connected in
-Vercel dashboard → Settings → Git → Connect Git Repository).
-
-Manual deploy: `vercel --prod`
 
 ## Development Rules
 
