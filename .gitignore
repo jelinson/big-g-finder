@@ -8,3 +8,6 @@ npm-debug.log
 !.claude/skills/
 email-previews/
 .superpowers/
+.playwright-mcp/
+*.png
+!screenshots/*.png
