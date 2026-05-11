@@ -11,7 +11,7 @@ For setup, env vars, and commands, see [README.md](README.md). This file documen
 |---|---|
 | Frontend | Static HTML (`sweet-cow-finder.html`), served by Vercel |
 | API | Vercel serverless functions (`api/`) |
-| Scraper | Node 20 script (`scripts/scrape.js`), run by GitHub Actions |
+| Scraper | Node 22 script (`scripts/scrape.js`), run by GitHub Actions |
 | Database | Supabase (Postgres) |
 | Email | Resend |
 | DNS | Cloudflare (CNAME → Vercel, proxy off) |

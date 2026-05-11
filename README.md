@@ -31,7 +31,7 @@ Sweet Cow posts their daily flavors on their website, but there's no way to get 
 |---|---|
 | Frontend | Static HTML/CSS/JS, served by Vercel |
 | API | Vercel serverless functions (`api/`) |
-| Scraper | Node 20 (`scripts/scrape.js`), run by GitHub Actions |
+| Scraper | Node 22 (`scripts/scrape.js`), run by GitHub Actions |
 | Database | Supabase (Postgres) |
 | Email | Resend |
 | Domain | `biggfinder.jelinson.com` (Cloudflare → Vercel) |
@@ -46,7 +46,7 @@ See `api/`, `lib/`, `scripts/`, `tests/` — paths are self-describing.
 
 ### Prerequisites
 
-- Node 20
+- Node 22
 - A Supabase project (see schema in `supabase-schema.sql`)
 - A Resend account with `biggfinder.jelinson.com` verified as a sending domain
 
