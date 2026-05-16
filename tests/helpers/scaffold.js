@@ -24,13 +24,13 @@ export function buildScaffold({ locGridInner } = {}) {
       <div id="results"></div>
       <div id="loc-summary">
         <div id="loc-summary-text">🔍 Checking all locations…</div>
-        <div id="notif-section" style="display:none">
+        <div id="notif-section" class="hidden">
           <button type="button" id="notif-trigger">🔔 Get notified</button>
           <div id="notif-form" style="display:none">
             <form id="subscribe-form">
               <input type="email" id="subscribe-email">
               <span id="notif-flavor"></span>
-              <div id="location-checkboxes"></div>
+              <div id="location-checkboxes"><label class="checkbox-label"><input type="checkbox" name="location" value="" id="loc-all-checkbox" checked> All locations</label></div>
               <button type="submit" id="subscribe-btn">Notify Me!</button>
             </form>
           </div>

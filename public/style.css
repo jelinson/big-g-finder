@@ -580,7 +580,9 @@ h1 {
     50%       { transform: translateY(-10px); }
 }
 
-/* ── Subscription banner & form ─────────────────────────────── */
+.hidden { display: none; }
+
+/* ── Banners ─────────────────────────────────────────────────── */
 
 .subscribed-banner {
     position: relative;
@@ -612,6 +614,20 @@ h1 {
 }
 
 .banner-close:hover { opacity: 1; }
+
+.flavor-not-found-banner {
+    position: relative;
+    background: #FFF3CD;
+    border: 3px solid #FFC107;
+    border-radius: 20px;
+    padding: 18px 50px 18px 25px;
+    margin-bottom: 30px;
+    color: #856404;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
 
 .subscribe-message { margin-top: 15px; font-weight: 500; }
 .subscribe-message.success { color: #28A745; }

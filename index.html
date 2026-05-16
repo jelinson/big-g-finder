@@ -36,7 +36,7 @@
                 <script>!function(){var p=new URLSearchParams(location.search),f=p.get('flavor');if(f){var s=document.getElementById('flavorSelect'),o=s.options[0];o.value=f;o.textContent=f}}()</script>
             </div>
             <div id="loc-summary-text" class="summary-text">🔍 Checking all locations…</div>
-            <div id="notif-section" style="display:none">
+            <div id="notif-section" class="hidden">
                 <button type="button" id="notif-trigger" class="notif-trigger">
                     🔔 Get notified when it changes <span class="notif-arrow">▾</span>
                 </button>
@@ -50,7 +50,9 @@
                         </div>
                         <p class="notif-hint">We'll email when <span id="notif-flavor">this flavor</span> is spotted.</p>
                         <div id="location-filter-panel" class="location-filter-panel">
-                            <div class="checkbox-grid" id="location-checkboxes"></div>
+                            <div class="checkbox-grid" id="location-checkboxes">
+                                <label class="checkbox-label"><input type="checkbox" name="location" value="" id="loc-all-checkbox" checked> All locations</label>
+                            </div>
                         </div>
                     </form>
                 </div>
