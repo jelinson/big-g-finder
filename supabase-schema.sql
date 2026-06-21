@@ -26,6 +26,9 @@ CREATE TABLE flavors (
 -- If the table already exists, add the notified column:
 -- ALTER TABLE flavors ADD COLUMN IF NOT EXISTS notified BOOLEAN NOT NULL DEFAULT FALSE;
 
+-- Index to support paginated last_seen queries in /api/flavors
+CREATE INDEX IF NOT EXISTS idx_flavors_last_seen ON flavors(last_seen DESC);
+
 -- Email subscriptions
 CREATE TABLE subscriptions (
   id                UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
