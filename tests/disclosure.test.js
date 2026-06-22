@@ -20,9 +20,9 @@ beforeAll(async () => {
   await import('../public/app.js');
   window.dispatchEvent(new Event('DOMContentLoaded'));
   await vi.waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/flavors'));
-  // Wait for hydration
+  // Wait for hydration — notif-section should have .hidden removed
   await vi.waitFor(() =>
-    expect(document.getElementById('notif-section').style.display).not.toBe('none')
+    expect(document.getElementById('notif-section').classList.contains('hidden')).toBe(false)
   );
 });
 

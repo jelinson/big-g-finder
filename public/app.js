@@ -1,4 +1,5 @@
 import { sortLocationResults } from '../lib/sort.js';
+import { normalizeFlavorName, isBigGsFlavor, isValidFlavor, BIG_GS_DISPLAY_NAME } from '../lib/normalize.js';
 
 // Inline HTML escaper — bare specifiers can't be resolved in browser ES modules without a bundler
 function escapeHtml(str) {
@@ -10,6 +11,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#x27;');
 }
 
+// Defense-in-depth http(s) allowlist — rejects javascript:, data:, etc. URLs
 function safeUrl(url) {
     try {
         const u = new URL(url);
@@ -22,36 +24,18 @@ const cssEscape = typeof CSS !== 'undefined' && CSS.escape
     ? CSS.escape
     : s => s.replace(/([^\w-])/g, '\\$1');
 
+const STATUS_FOUND = 'found';
+const STATUS_NOT_FOUND = 'not-found';
+const STATUS_LOADING = 'loading';
+
 let allLocationData = [];
-let currentSearchFlavor = '';
-let requestedFlavor = null;
-
-function normalizeFlavorName(name) {
-    return name.toLowerCase()
-        .replace(/big\s*g[''']?s?/, 'bigg')
-        .replace(/gigantic[''']?s?/, 'gigantic')
-        .replace(/cookie[s]?/, 'cookie')
-        .replace(/dream[s]?/, 'dream')
-        .replace(/[^a-z0-9]/g, '');
-}
-
-function isTargetFlavor(flavorName, targetFlavor) {
-    if (!targetFlavor) {
-        const normalized = normalizeFlavorName(flavorName);
-        const patterns = [
-            'biggcookiedream',
-            'biggigcookiedream',
-            'giganticcookiedream',
-            'biggiganticcookiedream'
-        ];
-        return patterns.some(pattern => normalized.includes(pattern) ||
-               (normalized.includes('bigg') && normalized.includes('cookie') && normalized.includes('dream')));
-    } else {
-        return normalizeFlavorName(flavorName) === normalizeFlavorName(targetFlavor);
-    }
-}
 
 // ── Hydration helpers ──────────────────────────────────────────
+
+function buildFragment(found, flavor) {
+    const target = found ? flavor : "Today's Flavors";
+    return '#:~:text=' + encodeURIComponent(target);
+}
 
 function hydrateCard(slug, result, targetFlavor) {
     const link = document.querySelector(`[data-slug="${cssEscape(slug)}"]`);
@@ -60,33 +44,43 @@ function hydrateCard(slug, result, targetFlavor) {
     const status = link.querySelector('.status');
     if (!card || !status) return;
 
-    card.classList.remove('loading', 'found', 'not-found');
-    card.classList.add(result.found ? 'found' : 'not-found');
-    status.className = `status ${result.found ? 'found' : 'not-found'}`;
+    card.classList.remove(STATUS_LOADING, STATUS_FOUND, STATUS_NOT_FOUND);
+    card.classList.add(result.found ? STATUS_FOUND : STATUS_NOT_FOUND);
+    status.classList.remove(STATUS_LOADING, STATUS_FOUND, STATUS_NOT_FOUND);
+    status.classList.add(result.found ? STATUS_FOUND : STATUS_NOT_FOUND);
     status.textContent = result.found ? '✓ Available' : '✗ Not Available';
 
-    const fragment = result.found ? `#:~:text=${encodeURIComponent(targetFlavor)}` : '';
-    link.href = safeUrl(result.url + fragment);
+    link.href = safeUrl(result.url + buildFragment(result.found, targetFlavor));
 }
 
-function appendNewCard(loc, targetFlavor) {
+function appendNewCard(result, targetFlavor) {
     const grid = document.getElementById('loc-grid');
     if (!grid) return;
-    if (document.querySelector(`[data-slug="${cssEscape(loc.slug)}"]`)) return;
-    const found = loc.flavors.some(f => normalizeFlavorName(f) === normalizeFlavorName(targetFlavor));
+    if (document.querySelector(`[data-slug="${cssEscape(result.slug)}"]`)) return;
     const link = document.createElement('a');
-    link.href = safeUrl(loc.url + (found ? `#:~:text=${encodeURIComponent(targetFlavor)}` : ''));
     link.target = '_blank';
     link.className = 'result-card-link';
-    link.dataset.slug = loc.slug;
-    link.innerHTML = `
-        <div class="result-card ${found ? 'found' : 'not-found'}">
-            <div class="location-name">${escapeHtml(loc.location)}</div>
-            <div class="location-address">${escapeHtml(loc.address ?? '')}</div>
-            <span class="status ${found ? 'found' : 'not-found'}">${found ? '✓ Available' : '✗ Not Available'}</span>
-        </div>
-    `;
+    link.dataset.slug = result.slug;
+    const cardDiv = document.createElement('div');
+    cardDiv.className = `result-card ${STATUS_LOADING}`;
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'location-name';
+    nameDiv.textContent = result.location;
+    const addrDiv = document.createElement('div');
+    addrDiv.className = 'location-address';
+    addrDiv.textContent = result.address ?? '';
+    const statusSpan = document.createElement('span');
+    statusSpan.className = `status ${STATUS_LOADING}`;
+    const dots = document.createElement('span');
+    dots.className = 'loading-dots';
+    dots.innerHTML = '<span>🍦</span><span>🍦</span><span>🍦</span>';
+    statusSpan.appendChild(dots);
+    cardDiv.appendChild(nameDiv);
+    cardDiv.appendChild(addrDiv);
+    cardDiv.appendChild(statusSpan);
+    link.appendChild(cardDiv);
     grid.appendChild(link);
+    hydrateCard(result.slug, result, targetFlavor);
 }
 
 function reorderGrid(sorted) {
@@ -117,29 +111,63 @@ function updateSummary(foundCount, targetFlavor, isBigGs) {
 function showSubscribeSection(flavor) {
     const section = document.getElementById('notif-section');
     const flavorEl = document.getElementById('notif-flavor');
-    if (section) section.style.display = 'block';
+    // Hidden in CSS until the flavor name is known, to avoid layout shift.
+    if (section) section.classList.remove('hidden');
     if (flavorEl) flavorEl.textContent = flavor;
 }
 
-function initDisclosureTrigger() {
-    const trigger = document.getElementById('notif-trigger');
-    const form = document.getElementById('notif-form');
-    if (!trigger || !form) return;
+// ── Disclosure / dialog wiring ─────────────────────────────────
+
+function wireDisclosure(triggerId, panelId) {
+    const trigger = document.getElementById(triggerId);
+    const panel = document.getElementById(panelId);
+    if (!trigger || !panel) return;
     trigger.addEventListener('click', () => {
-        const isOpen = form.classList.contains('open');
-        form.classList.toggle('open', !isOpen);
+        const isOpen = panel.classList.contains('open');
+        panel.classList.toggle('open', !isOpen);
         trigger.classList.toggle('open', !isOpen);
+        trigger.classList.toggle('active', !isOpen);
+    });
+}
+
+function initNotificationDialog() {
+    wireDisclosure('notif-trigger', 'notif-form');
+    wireDisclosure('location-filter-btn', 'location-filter-panel');
+}
+
+// ── Location checkboxes ────────────────────────────────────────
+
+// Grid is populated with the full API location set, so newly-discovered
+// locations appear automatically without any code changes here.
+function initLocationCheckboxes(grid, locations) {
+    if (!grid) return;
+
+    locations.forEach(loc => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-label';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.name = 'location';
+        cb.value = loc.slug;
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(' ' + loc.location));
+        grid.appendChild(label);
     });
 
-    const filterBtn = document.getElementById('location-filter-btn');
-    const filterPanel = document.getElementById('location-filter-panel');
-    if (filterBtn && filterPanel) {
-        filterBtn.addEventListener('click', () => {
-            const isOpen = filterPanel.classList.contains('open');
-            filterPanel.classList.toggle('open', !isOpen);
-            filterBtn.classList.toggle('active', !isOpen);
-        });
-    }
+    // Mutual exclusion: picking a specific location unchecks "All", checking "All" clears specifics
+    grid.addEventListener('change', e => {
+        const allBox = document.getElementById('loc-all-checkbox');
+        if (!allBox) return;
+        if (e.target === allBox) {
+            if (allBox.checked) {
+                grid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)').forEach(cb => { cb.checked = false; });
+            }
+        } else {
+            if (e.target.checked) allBox.checked = false;
+            const anyChecked = Array.from(grid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)')).some(cb => cb.checked);
+            if (!anyChecked) allBox.checked = true;
+        }
+    });
 }
 
 // ── Core data logic ────────────────────────────────────────────
@@ -162,32 +190,28 @@ async function fetchAllLocations() {
             error: false,
         }));
 
-        // Build list of all unique flavors
+        // Build list of all unique valid flavors
         const allFlavorsSet = new Set();
-        const invalidPatterns = [/^#/, /sweetcow/i, /today'?s?\s+flavor/i, /direction/i, /^$/];
         allLocationData.forEach(locationData => {
             locationData.flavors.forEach(flavor => {
-                if (flavor && flavor.length > 3) {
-                    const isInvalid = invalidPatterns.some(p => p.test(flavor));
-                    if (!isInvalid) allFlavorsSet.add(flavor);
-                }
+                if (isValidFlavor(flavor)) allFlavorsSet.add(flavor);
             });
         });
 
         const allFlavors = Array.from(allFlavorsSet).sort();
-        const bigGsFlavor = allFlavors.find(f => isTargetFlavor(f, null));
+        const bigGsFlavor = allFlavors.find(f => isBigGsFlavor(f));
 
         // Populate #flavorSelect
         const select = document.getElementById('flavorSelect');
         select.innerHTML = '';
 
-        const starFlavor = bigGsFlavor ?? "Big G's Cookies & Dream";
+        // Always render star option text as BIG_GS_DISPLAY_NAME to eliminate
+        // static-vs-hydrated flicker; the value uses the API's exact name for matching.
         const starOption = document.createElement('option');
-        starOption.value = starFlavor;
-        starOption.textContent = `${starFlavor} ⭐`;
+        starOption.value = bigGsFlavor ?? BIG_GS_DISPLAY_NAME;
+        starOption.textContent = `${BIG_GS_DISPLAY_NAME} ⭐`;
         starOption.selected = true;
         select.appendChild(starOption);
-        currentSearchFlavor = starFlavor;
 
         allFlavors.forEach(flavor => {
             if (flavor !== bigGsFlavor) {
@@ -198,80 +222,63 @@ async function fetchAllLocations() {
             }
         });
 
-        // Build location checkboxes
+        // Build location checkboxes (the "All locations" label lives in static HTML)
         const checkboxGrid = document.getElementById('location-checkboxes');
-        if (checkboxGrid) {
-            // "All locations" — pre-selected, acts as a deselect-all toggle
-            const allLabel = document.createElement('label');
-            allLabel.className = 'checkbox-label';
-            allLabel.innerHTML = `<input type="checkbox" name="location" value="" id="loc-all-checkbox" checked> All locations`;
-            checkboxGrid.appendChild(allLabel);
+        initLocationCheckboxes(checkboxGrid, allLocationData);
 
-            allLocationData.forEach(loc => {
-                const label = document.createElement('label');
-                label.className = 'checkbox-label';
-                label.innerHTML = `<input type="checkbox" name="location" value="${escapeHtml(loc.slug)}"> ${escapeHtml(loc.location)}`;
-                checkboxGrid.appendChild(label);
-            });
+        // Determine which flavor to display
+        const requestedFlavor = new URLSearchParams(location.search).get('flavor');
+        const matched = requestedFlavor
+            ? allFlavors.find(f => normalizeFlavorName(f) === normalizeFlavorName(requestedFlavor))
+            : null;
+        const finalFlavor = matched ?? bigGsFlavor ?? BIG_GS_DISPLAY_NAME;
 
-            // Mutual exclusion: picking a specific location unchecks "All", checking "All" clears specifics
-            checkboxGrid.addEventListener('change', e => {
-                const allBox = document.getElementById('loc-all-checkbox');
-                if (!allBox) return;
-                if (e.target === allBox) {
-                    if (allBox.checked) {
-                        checkboxGrid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)').forEach(cb => { cb.checked = false; });
-                    }
-                } else {
-                    if (e.target.checked) allBox.checked = false;
-                    const anyChecked = Array.from(checkboxGrid.querySelectorAll('input[type=checkbox]:not(#loc-all-checkbox)')).some(cb => cb.checked);
-                    if (!anyChecked) allBox.checked = true;
-                }
-            });
+        // Show a banner when the requested flavor isn't on any menu today
+        if (requestedFlavor && !matched) {
+            const banner = document.createElement('div');
+            banner.className = 'flavor-not-found-banner';
+            const msg = document.createTextNode(`${requestedFlavor} isn't on any menu today — showing Big G's instead. `);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'banner-close';
+            closeBtn.setAttribute('aria-label', 'Dismiss');
+            closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', () => banner.remove());
+            banner.appendChild(msg);
+            banner.appendChild(closeBtn);
+            document.querySelector('.container').prepend(banner);
         }
 
-        if (requestedFlavor) {
-            const matched = allFlavors.find(f => normalizeFlavorName(f) === normalizeFlavorName(requestedFlavor));
-            if (matched) {
-                select.value = matched;
-                currentSearchFlavor = matched;
-                displayResults(matched);
-                return;
-            }
-        }
-
-        displayResults(bigGsFlavor ?? "Big G's Cookies & Dream");
+        select.value = finalFlavor;
+        displayResults(finalFlavor);
 
     } catch (error) {
         console.error('Error loading flavors:', error);
         const resultsDiv = document.getElementById('results');
         if (resultsDiv) {
-            const errorText = document.createTextNode(error.message);
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
-            errorDiv.innerHTML = 'Oops! Something went wrong while loading flavors. Please refresh the page.<br><br>Error: ';
-            errorDiv.appendChild(errorText);
-            resultsDiv.innerHTML = '';
+            const errorMsg = document.createTextNode('Oops! Something went wrong while loading flavors. Please refresh the page.');
+            const errorDetail = document.createTextNode(' Error: ' + error.message);
+            errorDiv.appendChild(errorMsg);
+            errorDiv.appendChild(document.createElement('br'));
+            errorDiv.appendChild(document.createElement('br'));
+            errorDiv.appendChild(errorDetail);
+            resultsDiv.textContent = '';
             resultsDiv.appendChild(errorDiv);
         }
     }
 }
 
 function displayResults(targetFlavor) {
-    const isBigGs = isTargetFlavor(targetFlavor, null) || targetFlavor === "Big G's Cookies & Dream";
-    currentSearchFlavor = targetFlavor;
+    const isBigGs = isBigGsFlavor(targetFlavor);
 
-    const results = allLocationData.map(locationData => ({
-        location: locationData.location,
-        address: locationData.address,
-        url: locationData.url,
-        slug: locationData.slug,
-        found: locationData.flavors.some(f => normalizeFlavorName(f) === normalizeFlavorName(targetFlavor)),
-        error: locationData.error,
+    const results = allLocationData.map(l => ({
+        ...l,
+        found: l.flavors.some(f => normalizeFlavorName(f) === normalizeFlavorName(targetFlavor)),
     }));
 
+    const foundCount = results.filter(r => r.found).length;
     const sorted = sortLocationResults(results);
-    const foundCount = sorted.filter(r => r.found).length;
 
     // Hydrate static cards or append new ones
     sorted.forEach(result => {
@@ -280,8 +287,7 @@ function displayResults(targetFlavor) {
             hydrateCard(result.slug, result, targetFlavor);
         } else {
             // Location from API not in static HTML — append it
-            const loc = allLocationData.find(l => l.slug === result.slug);
-            if (loc) appendNewCard(loc, targetFlavor);
+            appendNewCard(result, targetFlavor);
         }
     });
 
@@ -302,7 +308,8 @@ async function submitSubscription(event) {
         document.getElementById('notif-form').appendChild(msgEl);
     }
     const email = document.getElementById('subscribe-email').value.trim();
-    const flavorPattern = currentSearchFlavor;
+    // Read current flavor from DOM at submit time (no global needed)
+    const flavorPattern = document.getElementById('flavorSelect').value;
 
     const checkedBoxes = document.querySelectorAll('#location-checkboxes input[type=checkbox]:checked:not(#loc-all-checkbox)');
     const locations = Array.from(checkedBoxes).map(cb => cb.value);
@@ -340,14 +347,19 @@ window.addEventListener('DOMContentLoaded', () => {
     if (params.get('subscribed') === '1') {
         const banner = document.createElement('div');
         banner.className = 'subscribed-banner';
-        banner.innerHTML = '✓ You\'re confirmed! We\'ll notify you when your flavor is spotted. <button class="banner-close" aria-label="Dismiss">×</button>';
-        banner.querySelector('.banner-close').addEventListener('click', () => banner.remove());
+        const msg = document.createTextNode("✓ You're confirmed! We'll notify you when your flavor is spotted. ");
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'banner-close';
+        closeBtn.setAttribute('aria-label', 'Dismiss');
+        closeBtn.textContent = '×';
+        closeBtn.addEventListener('click', () => banner.remove());
+        banner.appendChild(msg);
+        banner.appendChild(closeBtn);
         document.querySelector('.container').prepend(banner);
         history.replaceState(null, '', '/');
     }
-    requestedFlavor = params.get('flavor') || null;
 
-    initDisclosureTrigger();
+    initNotificationDialog();
     fetchAllLocations();
 
     const form = document.getElementById('subscribe-form');
@@ -355,7 +367,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const select = document.getElementById('flavorSelect');
     if (select) select.addEventListener('change', () => {
-        currentSearchFlavor = select.value;
         displayResults(select.value);
     });
 });
