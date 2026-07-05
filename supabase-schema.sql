@@ -20,11 +20,21 @@ CREATE TABLE flavors (
   first_seen  DATE NOT NULL DEFAULT CURRENT_DATE,
   last_seen   DATE NOT NULL DEFAULT CURRENT_DATE,
   notified    BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Whether the flavor is currently in stock. The scraper flips this to false
+  -- when a flavor drops off a location's menu; when it reappears, upsertFlavors
+  -- resets notified=false so subscribers are alerted that it's back.
+  available   BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE(location, flavor_name)
 );
 
 -- If the table already exists, add the notified column:
 -- ALTER TABLE flavors ADD COLUMN IF NOT EXISTS notified BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- If the table already exists, add the available column, then baseline existing
+-- rows as already-notified so the availability-based notify logic does not
+-- retroactively alert for flavors that were seen before this migration:
+-- ALTER TABLE flavors ADD COLUMN IF NOT EXISTS available BOOLEAN NOT NULL DEFAULT TRUE;
+-- UPDATE flavors SET notified = true WHERE notified = false;
 
 -- Email subscriptions
 CREATE TABLE subscriptions (
