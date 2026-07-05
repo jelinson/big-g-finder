@@ -149,6 +149,9 @@ export async function scrapeLocation(location) {
 export async function upsertFlavors(supabase, slug, flavors) {
   const today = new Date().toISOString().split('T')[0];
 
+  // Defense-in-depth: filter invalid entries at write time so junk never reaches the DB
+  const validFlavors = flavors.filter(f => isValidFlavor(f));
+
   const { data: existing, error: fetchErr } = await supabase
     .from('flavors')
     .select('flavor_name')
@@ -156,8 +159,8 @@ export async function upsertFlavors(supabase, slug, flavors) {
   if (fetchErr) throw fetchErr;
 
   const existingSet = new Set((existing || []).map(r => r.flavor_name));
-  const newFlavors = flavors.filter(f => !existingSet.has(f));
-  const returnedFlavors = flavors.filter(f => existingSet.has(f));
+  const newFlavors = validFlavors.filter(f => !existingSet.has(f));
+  const returnedFlavors = validFlavors.filter(f => existingSet.has(f));
 
   if (newFlavors.length > 0) {
     const { error } = await supabase.from('flavors').insert(
