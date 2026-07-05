@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { scrapeLocation, discoverLocations, reconcileLocations, getNewFlavors, markFlavorsNotified, notifySubscribers } from '../scripts/scrape.js';
+import { scrapeLocation, discoverLocations, reconcileLocations, upsertFlavors, getNewFlavors, markFlavorsNotified, notifySubscribers } from '../scripts/scrape.js';
 
 const SAMPLE_LOCATION_HTML = `
 <!DOCTYPE html>
@@ -221,6 +221,114 @@ describe('reconcileLocations', () => {
   });
 });
 
+// ── upsertFlavors ─────────────────────────────────────────────────────────────
+
+// Supabase mock for upsertFlavors: the first select returns existing rows;
+// inserts and updates (with their filter chains) are recorded for assertions.
+function makeFlavorSupabase(existingRows) {
+  const inserts = [];
+  const updates = []; // { payload, filters: { eq: [], in: [] } }
+
+  function makeUpdateChain(payload) {
+    const filters = { eq: [], in: [] };
+    const record = { payload, filters };
+    updates.push(record);
+    const chain = {
+      eq: vi.fn((col, val) => { filters.eq.push([col, val]); return chain; }),
+      in: vi.fn((col, vals) => { filters.in.push([col, vals]); return chain; }),
+      then: (res, rej) => Promise.resolve({ error: null }).then(res, rej),
+    };
+    return chain;
+  }
+
+  const selectChain = {
+    eq: vi.fn(() => selectChain),
+    then: (res, rej) => Promise.resolve({ data: existingRows, error: null }).then(res, rej),
+  };
+
+  return {
+    from: vi.fn(() => ({
+      select: vi.fn(() => selectChain),
+      insert: vi.fn((payload) => { inserts.push(payload); return Promise.resolve({ error: null }); }),
+      update: vi.fn((payload) => makeUpdateChain(payload)),
+    })),
+    _inserts: inserts,
+    _updates: updates,
+  };
+}
+
+// Finds the recorded update whose payload matches the given subset of keys.
+function findUpdate(updates, subset) {
+  return updates.find(u =>
+    Object.entries(subset).every(([k, v]) => u.payload[k] === v));
+}
+
+describe('upsertFlavors', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('inserts a brand-new flavor as available and unnotified', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const supabase = makeFlavorSupabase([]);
+
+    await upsertFlavors(supabase, 'south-boulder', ["Big G's Cookies & Dream"]);
+
+    expect(supabase._inserts).toHaveLength(1);
+    expect(supabase._inserts[0]).toEqual([
+      { location: 'south-boulder', flavor_name: "Big G's Cookies & Dream", first_seen: '2026-01-15', last_seen: '2026-01-15', available: true, notified: false },
+    ]);
+  });
+
+  it('re-arms notification when an out-of-stock flavor reappears', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    // Flavor exists but was marked out of stock (available=false) on a prior scrape.
+    const supabase = makeFlavorSupabase([
+      { flavor_name: "Big G's Cookies & Dream", available: false },
+    ]);
+
+    await upsertFlavors(supabase, 'south-boulder', ["Big G's Cookies & Dream"]);
+
+    // No new insert — it already existed.
+    expect(supabase._inserts).toHaveLength(0);
+    // The reappearance update resets notified so the scraper e-mails again.
+    const rearm = findUpdate(supabase._updates, { notified: false });
+    expect(rearm).toBeDefined();
+    expect(rearm.payload).toEqual({ last_seen: '2026-01-15', available: true, notified: false });
+    expect(rearm.filters.in).toContainEqual(['flavor_name', ["Big G's Cookies & Dream"]]);
+    expect(rearm.filters.eq).toContainEqual(['location', 'south-boulder']);
+  });
+
+  it('does not re-arm a flavor that is still in stock', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const supabase = makeFlavorSupabase([
+      { flavor_name: "Big G's Cookies & Dream", available: true },
+    ]);
+
+    await upsertFlavors(supabase, 'south-boulder', ["Big G's Cookies & Dream"]);
+
+    // notified must not be touched for a continuously-stocked flavor.
+    expect(findUpdate(supabase._updates, { notified: false })).toBeUndefined();
+    // last_seen is still bumped.
+    const bump = findUpdate(supabase._updates, { last_seen: '2026-01-15' });
+    expect(bump).toBeDefined();
+    expect(bump.payload.notified).toBeUndefined();
+  });
+
+  it('marks a flavor unavailable when it is no longer scraped', async () => {
+    vi.setSystemTime(new Date('2026-01-15'));
+    const supabase = makeFlavorSupabase([
+      { flavor_name: 'Salted Caramel', available: true },
+    ]);
+
+    // Salted Caramel was in stock but is absent from today's scrape.
+    await upsertFlavors(supabase, 'south-boulder', ["Big G's Cookies & Dream"]);
+
+    const gone = findUpdate(supabase._updates, { available: false });
+    expect(gone).toBeDefined();
+    expect(gone.filters.in).toContainEqual(['flavor_name', ['Salted Caramel']]);
+  });
+});
+
 // ── Shared helpers for getNewFlavors / notifySubscribers ──────────────────────
 
 // Makes a Supabase query chain that is awaitable at any depth and resolves to
@@ -241,11 +349,7 @@ function makeChainableQuery(resolvedValue) {
 // ── getNewFlavors ─────────────────────────────────────────────────────────────
 
 describe('getNewFlavors', () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it('queries first_seen = today and notified = false', async () => {
-    vi.setSystemTime(new Date('2026-01-15'));
+  it('queries available = true and notified = false', async () => {
     const expected = [{ location: 'south-boulder', flavor_name: "Big G's Cookies & Dream" }];
     const chain = makeChainableQuery({ data: expected, error: null });
     const supabase = { from: vi.fn().mockReturnValue(chain) };
@@ -253,12 +357,11 @@ describe('getNewFlavors', () => {
     const result = await getNewFlavors(supabase);
 
     expect(result).toEqual(expected);
-    expect(chain.eq).toHaveBeenCalledWith('first_seen', '2026-01-15');
+    expect(chain.eq).toHaveBeenCalledWith('available', true);
     expect(chain.eq).toHaveBeenCalledWith('notified', false);
   });
 
-  it('returns an empty array when no flavors are new today', async () => {
-    vi.setSystemTime(new Date('2026-01-15'));
+  it('returns an empty array when nothing needs notifying', async () => {
     const chain = makeChainableQuery({ data: [], error: null });
     const supabase = { from: vi.fn().mockReturnValue(chain) };
 
@@ -269,18 +372,14 @@ describe('getNewFlavors', () => {
 // ── markFlavorsNotified ───────────────────────────────────────────────────────
 
 describe('markFlavorsNotified', () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
-  it('updates notified = true for first_seen = today and notified = false', async () => {
-    vi.setSystemTime(new Date('2026-01-15'));
+  it('updates notified = true for available flavors not yet notified', async () => {
     const chain = makeChainableQuery({ error: null });
     const supabase = { from: vi.fn().mockReturnValue(chain) };
 
     await markFlavorsNotified(supabase);
 
     expect(chain.update).toHaveBeenCalledWith({ notified: true });
-    expect(chain.eq).toHaveBeenCalledWith('first_seen', '2026-01-15');
+    expect(chain.eq).toHaveBeenCalledWith('available', true);
     expect(chain.eq).toHaveBeenCalledWith('notified', false);
   });
 });

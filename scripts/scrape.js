@@ -151,50 +151,80 @@ export async function upsertFlavors(supabase, slug, flavors) {
 
   const { data: existing, error: fetchErr } = await supabase
     .from('flavors')
-    .select('flavor_name')
+    .select('flavor_name, available')
     .eq('location', slug);
   if (fetchErr) throw fetchErr;
 
-  const existingSet = new Set((existing || []).map(r => r.flavor_name));
-  const newFlavors = flavors.filter(f => !existingSet.has(f));
-  const returnedFlavors = flavors.filter(f => existingSet.has(f));
+  const existingByName = new Map((existing || []).map(r => [r.flavor_name, r]));
+  const scrapedSet = new Set(flavors);
 
-  if (newFlavors.length > 0) {
+  const brandNew = flavors.filter(f => !existingByName.has(f));
+  const reappeared = flavors.filter(f => existingByName.get(f)?.available === false);
+  const stillInStock = flavors.filter(f => existingByName.get(f)?.available === true);
+  const goneOutOfStock = (existing || [])
+    .filter(r => r.available && !scrapedSet.has(r.flavor_name))
+    .map(r => r.flavor_name);
+
+  if (brandNew.length > 0) {
     const { error } = await supabase.from('flavors').insert(
-      newFlavors.map(f => ({ location: slug, flavor_name: f, first_seen: today, last_seen: today }))
+      brandNew.map(f => ({ location: slug, flavor_name: f, first_seen: today, last_seen: today, available: true, notified: false }))
     );
     if (error) throw error;
   }
 
-  if (returnedFlavors.length > 0) {
+  // Reappeared after being out of stock: re-arm the notification so subscribers
+  // get alerted that the flavor is back.
+  if (reappeared.length > 0) {
+    const { error } = await supabase
+      .from('flavors')
+      .update({ last_seen: today, available: true, notified: false })
+      .eq('location', slug)
+      .in('flavor_name', reappeared);
+    if (error) throw error;
+  }
+
+  // Still in stock since the last scrape: just refresh last_seen.
+  if (stillInStock.length > 0) {
     const { error } = await supabase
       .from('flavors')
       .update({ last_seen: today })
       .eq('location', slug)
-      .in('flavor_name', returnedFlavors);
+      .in('flavor_name', stillInStock);
+    if (error) throw error;
+  }
+
+  // No longer on the menu: mark unavailable so a future return counts as a
+  // reappearance and re-notifies.
+  if (goneOutOfStock.length > 0) {
+    const { error } = await supabase
+      .from('flavors')
+      .update({ available: false })
+      .eq('location', slug)
+      .in('flavor_name', goneOutOfStock);
     if (error) throw error;
   }
 }
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
+// A flavor is notify-worthy when it is currently available but not yet notified.
+// This covers both brand-new flavors and ones that reappeared after being out
+// of stock (upsertFlavors resets notified=false on reappearance).
 export async function getNewFlavors(supabase) {
-  const today = new Date().toISOString().split('T')[0];
   const { data, error } = await supabase
     .from('flavors')
     .select('location, flavor_name')
-    .eq('first_seen', today)
+    .eq('available', true)
     .eq('notified', false);
   if (error) throw error;
   return data || [];
 }
 
 export async function markFlavorsNotified(supabase) {
-  const today = new Date().toISOString().split('T')[0];
   const { error } = await supabase
     .from('flavors')
     .update({ notified: true })
-    .eq('first_seen', today)
+    .eq('available', true)
     .eq('notified', false);
   if (error) throw error;
 }
