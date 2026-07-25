@@ -15,7 +15,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.0",
+    "@supabase/supabase-js": "^2.110.8",
     "cheerio": "^1.0.0",
     "he": "^1.2.0",
     "resend": "^6.17.1"
