@@ -4,3 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Non-major bumps auto-merge, so wait a week before proposing a release:
+    # hijacked npm versions are usually caught and yanked within days.
+    # Security updates ignore cooldown and still arrive immediately.
+    cooldown:
+      default-days: 7
+    # Batch updates into at most two PRs a week instead of one per package.
+    groups:
+      npm-minor-and-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
