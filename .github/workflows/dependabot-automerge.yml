@@ -1,11 +1,16 @@
 name: Dependabot auto-merge
-on: pull_request
+on:
+  pull_request:
+  # Watch CI so a Dependabot PR stuck on a failing check gets flagged.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 permissions:
   contents: write
   pull-requests: write
 jobs:
   automerge:
-    if: github.actor == 'dependabot[bot]'
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: dependabot/fetch-metadata@v2
@@ -17,10 +22,32 @@ jobs:
       # that class of breakage. Dev-dependency majors also auto-merge: a breaking
       # change there fails lint/tests and blocks the merge. Runtime majors still
       # wait for a human, since mocked tests can pass while real API calls break.
-      - if: |
+      - id: merge
+        if: |
           steps.meta.outputs.update-type != 'version-update:semver-major' ||
           steps.meta.outputs.dependency-type == 'direct:development'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Assigning the owner sends an email even when only watching
+      # "Participating", so the inbox only hears about PRs that need a human.
+      - if: steps.merge.conclusion == 'skipped'
+        run: gh pr edit "$PR_URL" --add-assignee "$OWNER"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          OWNER: ${{ github.repository_owner }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  assign-on-ci-failure:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr edit "$BRANCH" --repo "$GITHUB_REPOSITORY" --add-assignee "$OWNER"
+        env:
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          OWNER: ${{ github.repository_owner }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
