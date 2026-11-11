@@ -14,8 +14,12 @@ jobs:
       # runtime deps and transitive security fixes. Runtime deps used to be
       # excluded after a "minor" supabase-js bump required a global WebSocket
       # (PR #70); CI's smoke-deps step now constructs the real clients to catch
-      # that class of breakage. Majors still wait for a human.
-      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+      # that class of breakage. Dev-dependency majors also auto-merge: a breaking
+      # change there fails lint/tests and blocks the merge. Runtime majors still
+      # wait for a human, since mocked tests can pass while real API calls break.
+      - if: |
+          steps.meta.outputs.update-type != 'version-update:semver-major' ||
+          steps.meta.outputs.dependency-type == 'direct:development'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
